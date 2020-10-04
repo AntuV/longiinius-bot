@@ -1,5 +1,5 @@
 {
-  "name": "twitch-js-bot",
+  "name": "longiinius-bot",
   "version": "1.0.0",
   "description": "This is a twitch bot",
   "main": "bot.js",
@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "config": "^3.0.1",
+    "node-fetch": "^2.6.1",
     "tmi.js": "^1.4.2"
   }
 }

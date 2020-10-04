@@ -10,5 +10,10 @@
     username: "your-bots-username-here",
     oauth_token: "oauthtokenhere" // Login via bot & generate here https://twitchapps.com/tmi/
   },
+  lol: {
+    url: "https://la2.api.riotgames.com", // LAS
+    api_key: "league-of-legends-api-key",
+    account_id: "1k00Ns1LLRqGtEbP-ew0CmN-2Ru5qvZoRCIj_55clYKm0w" // Longiniuss
+  },
   channel: "your-channel-here"
 }
