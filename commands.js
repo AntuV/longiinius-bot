@@ -42,6 +42,9 @@ const callCommand = async (command, messageInfo) => {
         if (currentMatch.status && currentMatch.status.status_code === 404) {
           searching = false;
           return client.say(activeChannel, '@' + messageInfo.user.username + ', el capi no está en partida.');
+        } else if (currentMatch.status && currentMatch.status.status_code !== 200) {
+          searching = false;
+          return;
         }
 
         // Matcheo el campeón buscado
