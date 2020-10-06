@@ -15,5 +15,6 @@
     api_key: "league-of-legends-api-key",
     account_id: "1k00Ns1LLRqGtEbP-ew0CmN-2Ru5qvZoRCIj_55clYKm0w" // Longiniuss
   },
-  channel: "your-channel-here"
+  channel: "your-channel-here",
+  owner: "AntuV"
 }
