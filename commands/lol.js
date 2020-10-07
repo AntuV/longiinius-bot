@@ -170,14 +170,21 @@ const lolCommand = async (command, messageInfo, searching) => {
       return;
     }
 
-    rankData = rankData[0];
+    let rank = null;
+
+    for (let i = 0; i < rankData.length; i++) {
+      if (rankData[i].queueType === 'RANKED_SOLO_5x5') {
+        rank = rankData[i];
+      }
+    }
 
     // Devuelvo mensaje con resultado al chat
-    if (rankData.queueType === 'RANKED_SOLO_5x5') {
-      client.say(activeChannel, summonerName + ' (' + championName + '): ' + rankData.tier + ' ' + rankData.rank + ' ' + rankData.leaguePoints + 'LP - WR ' + rankData.wins + '/' + rankData.losses + ' - Ganó ' + ratio + ' de las últimas ' + totalMatches + ' partidas con ' + championName + '.');
+    if (rank) {
+      client.say(activeChannel, summonerName + ' (' + championName + '): ' + rank.tier + ' ' + rank.rank + ' ' + rank.leaguePoints + 'LP - WR ' + rank.wins + '/' + rank.losses + ' - Ganó ' + ratio + ' de las últimas ' + totalMatches + ' partidas con ' + championName + '.');
     } else {
       client.say(activeChannel, summonerName + ' (' + championName + '): Ganó ' + ratio + ' de las últimas ' + totalMatches + ' partidas con ' + championName + '.');
     }
+
     searching = false;
 
   } catch (err) {
