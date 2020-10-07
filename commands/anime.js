@@ -10,8 +10,6 @@ const checkPermission = (state) =>
   state.user.username === owner.toLowerCase();
 
 const animeCommand = (command, messageInfo) => {
-  console.log(command);
-
   if (command.args.length === 0) {
     client.say(activeChannel, "No 1 :<");
     return;
@@ -24,17 +22,23 @@ const animeCommand = (command, messageInfo) => {
       }
 
       if (command.args.length < 2) {
-        client.say(activeChannel, "No 2 :<");
+        client.say(
+          activeChannel,
+          "Tenés que indicar el nombre del anime a agregar. Por ejemplo: !anime add Naruto"
+        );
         return;
       }
 
       db.get(
-        `SELECT name FROM anime WHERE name = ?`,
-        [command.args[1]],
+        `SELECT name FROM anime WHERE lower(name) = ?`,
+        [command.args[1].toLowerCase()],
         (err, row) => {
           if (err) {
             console.error(err);
-            client.say(activeChannel, "No 3 :<");
+            client.say(
+              activeChannel,
+              "Ocurrió un error al buscar si el anime existe"
+            );
             return;
           }
 
@@ -45,7 +49,10 @@ const animeCommand = (command, messageInfo) => {
               (err) => {
                 if (err) {
                   console.error(err);
-                  client.say(activeChannel, "No 3 :<");
+                  client.say(
+                    activeChannel,
+                    "Ocurrió un error al agregar el anime " + command.args[1]
+                  );
                 } else {
                   client.say(
                     activeChannel,
@@ -69,17 +76,24 @@ const animeCommand = (command, messageInfo) => {
       }
 
       if (command.args.length < 2) {
-        client.say(activeChannel, "No 2 :<");
+        client.say(
+          activeChannel,
+          "Tenés que indicar el nombre del anime y el capítulo actual. Por ejemplo: !anime set naruto 207"
+        );
         return;
       }
 
       db.get(
-        `SELECT name FROM anime WHERE name = ?`,
-        [command.args[1]],
+        `SELECT name FROM anime WHERE lower(name) = ?`,
+        [command.args[1].toLowerCase()],
         (err, row) => {
           if (err) {
             console.error(err);
-            client.say(activeChannel, "No 3 :<");
+            client.say(
+              activeChannel,
+              "Ocurrió un error verificando si existe el anime " +
+                command.args[1]
+            );
             return;
           }
 
@@ -90,12 +104,15 @@ const animeCommand = (command, messageInfo) => {
             );
           } else {
             db.run(
-              `UPDATE anime SET chapter = ? WHERE name = ?`,
-              [command.args[2], command.args[1]],
+              `UPDATE anime SET chapter = ? WHERE lower(name) = ?`,
+              [command.args[2], command.args[1].toLowerCase()],
               (err) => {
                 if (err) {
                   console.error(err);
-                  client.say(activeChannel, "No 3 :<");
+                  client.say(
+                    activeChannel,
+                    "Ocurrió un error actualizando el anime " + command.args[1]
+                  );
                   return;
                 }
 
@@ -115,18 +132,22 @@ const animeCommand = (command, messageInfo) => {
       }
 
       db.get(
-        `SELECT name, chapter FROM anime WHERE name = ?`,
-        [command.args[0]],
+        `SELECT name, chapter FROM anime WHERE lower(name) = ?`,
+        [command.args[0].toLowerCase()],
         (err, row) => {
           if (err) {
             console.error(err);
-            client.say(activeChannel, "No 3 :<");
+            client.say(
+              activeChannel,
+              "Ocurrió un error obteniendo el capítulo actual de " +
+                command.args[0]
+            );
             return;
           }
 
           client.say(
             activeChannel,
-            `@${messageInfo.user.username}, el anime "${row["name"]}" va por el capítulo ${row["chapter"]}.`
+            `@${messageInfo.user.username}, ${row["name"]} va por el capítulo ${row["chapter"]}.`
           );
         }
       );
