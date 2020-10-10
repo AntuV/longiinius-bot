@@ -79,7 +79,11 @@ const pointsCommand = (command, messageInfo) => {
               (err) => {
                 client.say(
                   activeChannel,
-                  `@${messageInfo.user["display-name"]}, ${userPoints.displayname} ahora tiene ${points} ${pointsname}`
+                  `@${messageInfo.user["display-name"]}, ${
+                    userPoints.displayname
+                      ? userPoints.displayname
+                      : userPoints.username
+                  } ahora tiene ${points} ${pointsname}`
                 );
               }
             );
