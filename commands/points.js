@@ -5,12 +5,24 @@ const owner = config.get("owner");
 const pointsname = config.get("pointsname");
 const db = require("../db.js");
 
+let cooldown = false;
+
 const checkPermission = (state) =>
   state.user.mod ||
   state.user.username === activeChannel.toLowerCase() ||
   state.user.username === owner.toLowerCase();
 
 const pointsCommand = (command, messageInfo) => {
+  if (cooldown && !checkPermission(messageInfo)) {
+    return;
+  }
+
+  cooldown = true;
+
+  setTimeout(() => {
+    cooldown = false;
+  }, 5 * 1000);
+
   if (command.args.length === 0) {
     db.get(
       "SELECT quantity FROM points WHERE username = ?",
