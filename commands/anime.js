@@ -11,7 +11,7 @@ const checkPermission = (state) =>
 
 const animeCommand = (command, messageInfo) => {
   if (command.args.length === 0) {
-    client.say(activeChannel, `@${messageInfo.user.username}, tenés que ingresar el nombre del animé después del comando`);
+    client.say(activeChannel, `@${messageInfo.user['display-name']}, tenés que ingresar el nombre del animé después del comando`);
     return;
   }
 
@@ -147,7 +147,7 @@ const animeCommand = (command, messageInfo) => {
 
           client.say(
             activeChannel,
-            `@${messageInfo.user.username}, ${row["name"]} va por el capítulo ${row["chapter"]}.`
+            `@${messageInfo.user['display-name']}, ${row["name"]} va por el capítulo ${row["chapter"]}.`
           );
         }
       );

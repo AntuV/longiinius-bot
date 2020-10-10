@@ -20,7 +20,7 @@ const lolCommand = async (command, messageInfo) => {
   // Si no escribió nombre de campeón
   if (command.args.length === 0) {
     searching = false;
-    return client.say(activeChannel, '@' + messageInfo.user.username + ', se debe buscar el nombre del campeón. Por ejemplo: !lol Jhin.');
+    return client.say(activeChannel, '@' + messageInfo.user['display-name'] + ', se debe buscar el nombre del campeón. Por ejemplo: !lol Jhin.');
   }
 
   // Busco la partida actual
@@ -38,7 +38,7 @@ const lolCommand = async (command, messageInfo) => {
     // No se encuentra en partida
     if (currentMatch.status && currentMatch.status.status_code === 404) {
       searching = false;
-      return client.say(activeChannel, '@' + messageInfo.user.username + ', el capi no está en partida.');
+      return client.say(activeChannel, '@' + messageInfo.user['display-name'] + ', el capi no está en partida.');
     } else if (currentMatch.status && currentMatch.status.status_code !== 200) {
       searching = false;
       return;
@@ -46,7 +46,7 @@ const lolCommand = async (command, messageInfo) => {
 
     if (currentMatch.gameQueueConfigId !== 420) {
       searching = false;
-      return client.say(activeChannel, '@' + messageInfo.user.username + ', el capi no está en una ranked.');
+      return client.say(activeChannel, '@' + messageInfo.user['display-name'] + ', el capi no está en una ranked.');
     }
 
     // Matcheo el campeón buscado
@@ -64,7 +64,7 @@ const lolCommand = async (command, messageInfo) => {
     // No encontré el campeón buscado
     if (!championId) {
       searching = false;
-      return client.say(activeChannel, '@' + messageInfo.user.username + ', no pude encontrar el campeón.');
+      return client.say(activeChannel, '@' + messageInfo.user['display-name'] + ', no pude encontrar el campeón.');
     }
 
     // Busco nombre del invocador
@@ -79,7 +79,7 @@ const lolCommand = async (command, messageInfo) => {
     // No encontré nombre del invocador
     if (!summonerName) {
       searching = false;
-      return client.say(activeChannel, '@' + messageInfo.user.username + ', no se encontró al campeón dentro de la partida.');
+      return client.say(activeChannel, '@' + messageInfo.user['display-name'] + ', no se encontró al campeón dentro de la partida.');
     }
 
     // Busco IDs del invocador

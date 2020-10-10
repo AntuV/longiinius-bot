@@ -3,7 +3,6 @@ const path = require("path");
 const dbPath = path.resolve(__dirname, "data.db");
 
 const db = new sqlite3.Database(dbPath, async (err) => {
-
   let initialized = null;
   try {
     initialized = await get(
@@ -25,7 +24,11 @@ const db = new sqlite3.Database(dbPath, async (err) => {
     await run("CREATE TABLE points(username TEXT UNIQUE, quantity INT)");
   }
 
-  await run("UPDATE schema_version SET version = 1");
+  if (schema.version === 1) {
+    await run("ALTER TABLE points ADD displayname TEXT;");
+  }
+
+  await run("UPDATE schema_version SET version = 2");
 });
 
 function run(query, params) {
