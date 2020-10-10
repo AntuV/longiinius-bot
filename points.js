@@ -8,8 +8,6 @@ const pointsHandler = (user) => {
     return;
   }
 
-  console.log(userDict[user.username].toISOString());
-
   if (userDict[user.username].isBefore(dayjs().subtract(5, "minute"))) {
     db.get(
       "SELECT quantity FROM points WHERE username = ?",
