@@ -135,7 +135,7 @@ const animeCommand = (command, messageInfo) => {
         `SELECT name, chapter FROM anime WHERE lower(name) = ?`,
         [command.args[0].toLowerCase()],
         (err, row) => {
-          if (err) {
+          if (err || !row) {
             console.error(err);
             client.say(
               activeChannel,
