@@ -11,9 +11,15 @@ let cooldown = false;
 const lolCommand = async (command, messageInfo) => {
 
   // No busco simultáneamente
-  if (searching || cooldown) {
+  if (searching) {
     return;
   }
+
+  if (cooldown && !checkPermission(messageInfo)) {
+    return;
+  }
+
+  cooldown = true;
 
   searching = true;
 
@@ -200,7 +206,6 @@ const lolCommand = async (command, messageInfo) => {
     searching = false;
 
   } catch (err) {
-    console.log('error');
     console.error(err);
     client.action(activeChannel, 'Me rompí todo :c');
     searching = false;
