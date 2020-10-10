@@ -4,10 +4,14 @@ const champions = require('../champions');
 const config = require('config');
 const activeChannel = config.get('channel');
 
-const lolCommand = async (command, messageInfo, searching) => {
+let searching = false;
+
+let cooldown = false;
+
+const lolCommand = async (command, messageInfo) => {
 
   // No busco simultáneamente
-  if (searching) {
+  if (searching || cooldown) {
     return;
   }
 
@@ -38,6 +42,11 @@ const lolCommand = async (command, messageInfo, searching) => {
     } else if (currentMatch.status && currentMatch.status.status_code !== 200) {
       searching = false;
       return;
+    }
+
+    if (currentMatch.gameQueueConfigId !== 420) {
+      searching = false;
+      return client.say(activeChannel, '@' + messageInfo.user.username + ', el capi no está en una ranked.');
     }
 
     // Matcheo el campeón buscado
@@ -113,8 +122,6 @@ const lolCommand = async (command, messageInfo, searching) => {
     let totalMatches = maxMatchCount;
     let ratio = maxMatchCount;
 
-    client.say(activeChannel, 'Buscando historial de partidas de ' + summonerName + ' con ' + championName + '...');
-
     for (let i = 0; i < maxMatchCount; i++) {
 
       try {
@@ -180,10 +187,15 @@ const lolCommand = async (command, messageInfo, searching) => {
 
     // Devuelvo mensaje con resultado al chat
     if (rank) {
-      client.say(activeChannel, summonerName + ' (' + championName + '): ' + rank.tier + ' ' + rank.rank + ' ' + rank.leaguePoints + 'LP - WR ' + rank.wins + '/' + rank.losses + ' - Ganó ' + ratio + ' de las últimas ' + totalMatches + ' partidas con ' + championName + '.');
+      const percentage = (rank.wins + rank.losses > 0) ? Math.floor(rank.wins / (rank.wins + rank.losses) * 100).toString() + '% ' : '';
+      client.say(activeChannel, summonerName + ' (' + championName + '): ' + rank.tier + ' ' + rank.rank + ' ' + rank.leaguePoints + 'LP - WR ' + percentage + rank.wins + '/' + rank.losses + ' - Ganó ' + ratio + ' de las últimas ' + totalMatches + ' partidas con ' + championName + '.');
     } else {
       client.say(activeChannel, summonerName + ' (' + championName + '): Ganó ' + ratio + ' de las últimas ' + totalMatches + ' partidas con ' + championName + '.');
     }
+
+    setTimeout(() => {
+      cooldown = false;
+    }, 120 * 1000);
 
     searching = false;
 

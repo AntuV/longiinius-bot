@@ -1,8 +1,8 @@
-const client = require("../client");
+const client = require("../client.js");
 const config = require("config");
 const activeChannel = config.get("channel");
 const owner = config.get("owner");
-const db = require("../db");
+const db = require("../db.js");
 
 const checkPermission = (state) =>
   state.user.mod ||
@@ -11,7 +11,7 @@ const checkPermission = (state) =>
 
 const animeCommand = (command, messageInfo) => {
   if (command.args.length === 0) {
-    client.say(activeChannel, "No 1 :<");
+    client.say(activeChannel, `@${messageInfo.user.username}, tenés que ingresar el nombre del animé después del comando`);
     return;
   }
 

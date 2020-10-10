@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "config": "^3.0.1",
+    "dayjs": "^1.9.1",
     "node-fetch": "^2.6.1",
     "sqlite3": "^5.0.0",
     "tmi.js": "^1.4.2"
