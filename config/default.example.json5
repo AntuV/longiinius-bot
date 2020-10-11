@@ -8,17 +8,21 @@
   },
   bot: {
     username: "your-bots-username-here",
-    oauth_token: "oauthtokenhere" // Login via bot & generate here https://twitchapps.com/tmi/
+    client_id: "gp762nuuoqcoxypju8c569th9wz7q5",
+    oauth_token: "oauthtokenhere" // Login via bot & generate here https://twitchtokengenerator.com/
   },
   lol: {
     url: "https://la2.api.riotgames.com", // LAS
     api_key: "league-of-legends-api-key",
-    account_id: "1k00Ns1LLRqGtEbP-ew0CmN-2Ru5qvZoRCIj_55clYKm0w" // Longiniuss
+    account_name: "Longiniuss",
+    account_id: "1k00Ns1LLRqGtEbP-ew0CmN-2Ru5qvZoRCIj_55clYKm0w"
   },
   twitch: {
     client_id: "",
-    secret: ""
+    secret: "",
+    broadcaster_id: ""
   },
   channel: "your-channel-here",
-  owner: "AntuV"
+  owner: "AntuV",
+  pointsname: "LongiPoints"
 }
