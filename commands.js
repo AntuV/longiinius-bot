@@ -7,6 +7,7 @@ const lolCommand = require('./commands/lol.js');
 const animeCommand = require('./commands/anime.js');
 const pointsCommand = require('./commands/points.js');
 const clipCommand = require('./commands/clip.js');
+const preguntaCommand = require('./commands/pregunta.js');
 
 let state = null;
 
@@ -26,6 +27,8 @@ const callCommand = async (command, messageInfo) => {
     case 'clip':
       clipCommand(command, messageInfo);
       break;
+    case 'pregunta':
+      preguntaCommand(command, messageInfo);
     default:
       break
   }

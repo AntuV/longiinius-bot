@@ -76,14 +76,10 @@ const pointsCommand = (command, messageInfo) => {
                 ? Number.parseInt(command.args[2], 10)
                 : Number.parseInt(command.args[2] * -1, 10);
 
-            console.log(pointsToAdd);
-
             const points =
               userPoints.quantity + pointsToAdd > 0
                 ? userPoints.quantity + pointsToAdd
                 : 0;
-
-            console.log(points);
 
             db.run(
               "UPDATE points SET quantity = ? WHERE username = ?",
