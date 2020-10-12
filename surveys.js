@@ -32,6 +32,8 @@ const surveys = {
         `¡EH GUACHOS! longiiHi En un minuto cae pregunta por ${REWARD} ${pointsname}`
       );
 
+      questionsSent.push(question.id);
+
       setTimeout(() => {
         currentQuestion = question;
         

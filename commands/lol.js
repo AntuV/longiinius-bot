@@ -45,6 +45,8 @@ const lolCommand = async (command, messageInfo) => {
     if (currentMatch.status && currentMatch.status.status_code === 404) {
       searching = false;
       return client.say(activeChannel, '@' + messageInfo.user['display-name'] + ', el capi no está en partida.');
+    } else if (currentMatch.status && currentMatch.status.status_code !== 401) {
+      return client.say(activeChannel, '@' + messageInfo.user['display-name'] + ', expiró la key.');
     } else if (currentMatch.status && currentMatch.status.status_code !== 200) {
       searching = false;
       return;
