@@ -28,9 +28,9 @@ setInterval(async () => {
  * Si no está, reinicia las preguntas enviadas
  */
 setInterval(() => {
-  if (live) {
+  if (isLive) {
     surveys.sendQuestion();
-  } else if (!live) {
+  } else {
     surveys.reset();
   }
 }, 30 * 60 * 1000);
