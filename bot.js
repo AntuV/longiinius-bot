@@ -8,27 +8,32 @@ client.connect();
 
 const userList = [];
 
-const surveyTimeout = null;
-
 isLive = false;
 
 twitch.isLive().then(live => {
   isLive = live;
 }).catch(() => {});
 
+/**
+ * Cada 5 minutos se fija si está en vivo
+ */
 setInterval(async () => {
   twitch.isLive().then(live => {
     isLive = live;
-    if (live && !surveyTimeout) {
-      surveys.sendQuestion();
-      surveyTimeout = setTimeout(() => {
-        surveys.sendQuestion();
-      }, 30 * 60 * 1000);
-    } else if (!live) {
-      surveys.reset();
-    }
   }).catch(() => {});
-}, 5 * 30 * 1000);
+}, 5 * 60 * 1000);
+
+/**
+ * Cada 30 minutos se fija si está en vivo y envía una pregunta
+ * Si no está, reinicia las preguntas enviadas
+ */
+setInterval(() => {
+  if (live) {
+    surveys.sendQuestion();
+  } else if (!live) {
+    surveys.reset();
+  }
+}, 30 * 60 * 1000);
 
 // Commands
 client.on("chat", (channel, user, message, self) => {
@@ -67,5 +72,5 @@ client.on("join", (channel, user, self) => {
 client.on("part", (channel, user, self) => {
   if (!self) return;
 
-  userList.filter((u) => u !== user);
+  userList = userList.filter((u) => u !== user);
 });
