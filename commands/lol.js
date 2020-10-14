@@ -8,6 +8,11 @@ let searching = false;
 
 let cooldown = false;
 
+const checkPermission = (state) =>
+  state.user.mod ||
+  state.user.username === activeChannel.toLowerCase() ||
+  state.user.username === owner.toLowerCase();
+
 const lolCommand = async (command, messageInfo) => {
 
   // No busco simultáneamente
