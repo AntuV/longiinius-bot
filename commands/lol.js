@@ -3,6 +3,7 @@ const fetch = require("node-fetch");
 const champions = require('../champions');
 const config = require('config');
 const activeChannel = config.get('channel');
+const owner = config.get("owner");
 
 let searching = false;
 let cooldown = false;
