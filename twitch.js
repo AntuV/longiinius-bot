@@ -2,7 +2,6 @@ const config = require("config");
 const fetch = require("node-fetch");
 let activeChannel = config.get("channel");
 const dayjs = require("dayjs");
-const client = require("tmi.js/lib/client");
 
 let access_token = null;
 let expires_at = null;

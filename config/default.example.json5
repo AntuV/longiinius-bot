@@ -2,10 +2,6 @@
   options: {
     debug: true
   },
-  connection: {
-    cluster: "aws",
-    reconnect: true
-  },
   bot: {
     username: "your-bots-username-here",
     client_id: "gp762nuuoqcoxypju8c569th9wz7q5",

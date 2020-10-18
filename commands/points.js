@@ -12,7 +12,7 @@ const checkPermission = (state) =>
   state.user.username === activeChannel.toLowerCase() ||
   state.user.username === owner.toLowerCase();
 
-const pointsCommand = (command, messageInfo) => {
+const pointsCommand = async (command, messageInfo) => {
   if (cooldown && !checkPermission(messageInfo)) {
     return;
   }
@@ -24,24 +24,19 @@ const pointsCommand = (command, messageInfo) => {
   }, 5 * 1000);
 
   if (command.args.length === 0) {
-    db.get(
-      "SELECT quantity FROM points WHERE username = ?",
-      [messageInfo.user["display-name"].toLowerCase()],
-      (err, userPoints) => {
-        if (err || !userPoints) {
-          client.say(
-            activeChannel,
-            `@${messageInfo.user["display-name"]}, no tenés ${pointsname}`
-          );
-          return;
-        }
-
+    getUsuario(messageInfo.user.username)
+      .then((userPoints) => {
         client.say(
           activeChannel,
           `@${messageInfo.user["display-name"]}, tenés ${userPoints.quantity} ${pointsname}`
         );
-      }
-    );
+      })
+      .catch(() => {
+        client.say(
+          activeChannel,
+          `@${messageInfo.user["display-name"]}, no tenés ${pointsname}`
+        );
+      });
   } else if (command.args.length === 1) {
     getUsuario(command.args[0])
       .then((userPoints) => {
@@ -59,18 +54,13 @@ const pointsCommand = (command, messageInfo) => {
           activeChannel,
           `@${messageInfo.user["display-name"]}, no se encontraron los ${pointsname} de ${command.args[0]}`
         );
-        return;
       });
   } else if (command.args.length === 2) {
   } else if (command.args.length === 3) {
     if (command.args[0] === "agregar" || command.args[0] === "quitar") {
-      if (!checkPermission(messageInfo)) {
-        return;
-      }
-
       if (!isNaN(command.args[2])) {
         getUsuario(command.args[1])
-          .then((userPoints) => {
+          .then(async (userPoints) => {
             const pointsToAdd =
               command.args[0] === "agregar"
                 ? Number.parseInt(command.args[2], 10)
@@ -81,20 +71,55 @@ const pointsCommand = (command, messageInfo) => {
                 ? userPoints.quantity + pointsToAdd
                 : 0;
 
-            db.run(
-              "UPDATE points SET quantity = ? WHERE username = ?",
-              [points, userPoints.username],
-              (err) => {
-                client.say(
+            if (!checkPermission(messageInfo)) {
+              let valid = false;
+
+              if (pointsToAdd > 0) {
+                try {
+                  const originUser = await getUsuario(messageInfo.user.username);
+                  if (originUser.quantity >= pointsToAdd) {
+                    try {
+                      await db.run(
+                        "UPDATE points SET quantity = ? WHERE username = ?",
+                        [
+                          originUser.quantity - pointsToAdd,
+                          messageInfo.user.username,
+                        ]
+                      );
+                      valid = true;
+                    } catch (err) {
+                      console.error(err);
+                    }
+                  }
+                } catch (err) {
+                  console.error(err);
+                }
+              }
+
+              if (!valid) {
+                return client.say(
                   activeChannel,
-                  `@${messageInfo.user["display-name"]}, ${
-                    userPoints.displayname
-                      ? userPoints.displayname
-                      : userPoints.username
-                  } ahora tiene ${points} ${pointsname}`
+                  `@${messageInfo.user["display-name"]}, no podés transferir esa cantidad.`
                 );
               }
-            );
+            }
+
+            try {
+              await db.run(
+                "UPDATE points SET quantity = ? WHERE username = ?",
+                [points, userPoints.username]
+              );
+              client.say(
+                activeChannel,
+                `@${messageInfo.user["display-name"]}, ${
+                  userPoints.displayname
+                    ? userPoints.displayname
+                    : userPoints.username
+                } ahora tiene ${points} ${pointsname}`
+              );
+            } catch (err) {
+              console.error(err);
+            }
           })
           .catch(() => {
             client.say(
@@ -114,22 +139,25 @@ const pointsCommand = (command, messageInfo) => {
 };
 
 function getUsuario(username) {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     if (username.indexOf("@") === 0) {
-      username = username.substring(1).toLowerCase();
+      username = username.substring(1);
     }
-    db.get(
-      "SELECT * FROM points WHERE username LIKE ?",
-      ["%" + username + "%"],
-      (err, userPoints) => {
-        if (err || !userPoints) {
-          reject(err);
-          return;
-        }
+    username = username.toLowerCase();
 
+    try {
+      const userPoints = await db.get(
+        "SELECT * FROM points WHERE username LIKE ?",
+        ["%" + username + "%"]
+      );
+      if (userPoints) {
         resolve(userPoints);
+      } else {
+        reject();
       }
-    );
+    } catch (err) {
+      reject(err);
+    }
   });
 }
 

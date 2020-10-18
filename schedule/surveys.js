@@ -22,12 +22,11 @@ setInterval(() => {
 const surveys = {
   running: false,
   sendQuestion: async (notice) => {
-
     if (currentQuestion) {
       return;
     }
 
-    db.all(
+    db.raw.all(
       "SELECT * FROM questions WHERE id NOT IN (" +
         questionsSent.join(",") +
         ")",
@@ -36,7 +35,7 @@ const surveys = {
         // Si ya se preguntaron todas, reseteo
         if (questions.length === 0) {
           questionsSent = [];
-          surveys.sendQuestion();
+          surveys.sendQuestion(notice);
           return;
         }
 
@@ -94,7 +93,7 @@ const surveys = {
         }
         endTimeout = null;
 
-        db.get(
+        db.raw.get(
           "SELECT * FROM points WHERE username = ?",
           [user.username],
           (err, userPoints) => {
@@ -102,13 +101,17 @@ const surveys = {
               client.action(activeChannel, "Me rompí todo :c");
               return;
             } else if (!userPoints) {
-              db.run(
+              db.raw.run(
+                /* "INSERT INTO points(username, displayname, quantity, questions) VALUES (?, ?, ?)",
+                [user.username, user["display-name"], REWARD, 1] */
                 "INSERT INTO points(username, displayname, quantity) VALUES (?, ?, ?)",
                 [user.username, user["display-name"], REWARD]
               );
             }
 
-            db.run(
+            db.raw.run(
+              /* "UPDATE points SET quantity = ?, questions = ? WHERE username = ?",
+              [userPoints.quantity + REWARD, userPoints.questions ? userPoints.questions + 1 : 1, userPoints.username], */
               "UPDATE points SET quantity = ? WHERE username = ?",
               [userPoints.quantity + REWARD, userPoints.username],
               (err) => {

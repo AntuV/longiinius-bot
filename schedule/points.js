@@ -4,18 +4,19 @@ const db = require("../db.js");
 const config = require('config');
 
 const pointsHandler = (user) => {
+
   if (!userDict[user.username]) {
     userDict[user.username] = dayjs();
     return;
   }
 
-  if (userDict[user.username].isBefore(dayjs().subtract(5, "minute"))) {
-    db.get(
+  if (config.get('options.debug') || userDict[user.username].isBefore(dayjs().subtract(5, "minute"))) {
+    db.raw.get(
       "SELECT quantity, displayname FROM points WHERE username = ?",
       [user.username],
       (err, userPoints) => {
         if (err || !userPoints) {
-          db.run(
+          db.raw.run(
             "INSERT INTO points(username, displayname, quantity) VALUES (?, ?, ?)",
             [user.username, user['display-name'], 1]
           );
@@ -23,13 +24,13 @@ const pointsHandler = (user) => {
         }
 
         if (!userPoints.displayname) {
-          db.run("UPDATE points SET displayname = ? WHERE username = ?", [
+          db.raw.run("UPDATE points SET displayname = ? WHERE username = ?", [
             user['display-name'],
             user.username,
           ]);
         }
 
-        db.run("UPDATE points SET quantity = ? WHERE username = ?", [
+        db.raw.run("UPDATE points SET quantity = ? WHERE username = ?", [
           userPoints.quantity + 1,
           user.username,
         ]);
