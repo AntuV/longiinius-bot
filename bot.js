@@ -12,6 +12,7 @@ isLive = false;
 
 twitch.isLive().then(live => {
   isLive = live;
+  surveys.running = live;
 }).catch(() => {});
 
 /**
@@ -20,30 +21,15 @@ twitch.isLive().then(live => {
 setInterval(async () => {
   twitch.isLive().then(live => {
     isLive = live;
+    surveys.running = live;
   }).catch(() => {});
 }, 5 * 60 * 1000);
-
-/**
- * Cada 30 minutos se fija si está en vivo y envía una pregunta
- * Si no está, reinicia las preguntas enviadas
- */
-setInterval(() => {
-  if (isLive) {
-    surveys.sendQuestion();
-  } else {
-    surveys.reset();
-  }
-}, 30 * 60 * 1000);
 
 // Commands
 client.on("chat", (channel, user, message, self) => {
   // bot message
   if (self) {
     return;
-  }
-
-  if (config.get('options.debug') && message === 'test') {
-    // surveys.sendQuestion();
   }
 
   // if message has symbol whats mean command - !

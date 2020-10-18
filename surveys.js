@@ -10,52 +10,71 @@ let questionsSent = [];
 let currentQuestion = null;
 let endTimeout = null;
 
+/**
+ * Cada 30 minutos se fija si está en vivo y envía una pregunta
+ */
+setInterval(() => {
+  if (surveys.running) {
+    surveys.sendQuestion(true);
+  }
+}, 30 * 60 * 1000);
+
 const surveys = {
-  sendQuestion: async () => {
-    db.all("SELECT * FROM questions", [], (err, questions) => {
-      if (questions.length === questionsSent.length) {
-        return;
-      }
+  running: false,
+  sendQuestion: async (notice) => {
+    db.all(
+      "SELECT * FROM questions WHERE id NOT IN (" +
+        questionsSent.join(",") +
+        ")",
+      [],
+      (err, questions) => {
+        // Si ya se preguntaron todas, reseteo
+        if (questions.length === 0) {
+          questionsSent = [];
+          surveys.sendQuestion();
+          return;
+        }
 
-      let question = questions[Math.floor(Math.random() * questions.length)];
+        let question = questions[Math.floor(Math.random() * questions.length)];
 
-      while (questionsSent.indexOf(question.id) !== -1) {
-        question = questions[Math.floor(Math.random() * questions.length)];
-      }
-
-      if (!question) {
-        return;
-      }
-
-      client.say(
-        activeChannel,
-        `¡EH GUACHOS! longiiHi En un minuto cae pregunta por ${REWARD} ${pointsname}`
-      );
-
-      questionsSent.push(question.id);
-
-      setTimeout(() => {
-        currentQuestion = question;
-        
-        client.say(
-          activeChannel,
-          `${question.question}`
-        );
-
-        endTimeout = setTimeout(() => {
-
-          const options = ['Son unos mancos, con razón no suben de rango KEKW', 'Por eso ella no te da bola', 'Por eso no se ganan el mod', 'Vayan a jugar a la bolita', '¡Eh, respondé put@ put@ put@ put@!'];
-
+        if (notice) {
           client.say(
             activeChannel,
-            `Expiró el tiempo para responder. ${options[Math.floor(Math.random() * options.length)]}`
+            `¡EH GUACHOS! longiiHi En un minuto cae pregunta por ${REWARD} ${pointsname}`
           );
-          currentQuestion = null;
-          endTimeout = null;
-        }, 5 * 60 * 1000)
-      }, 60 * 1000);
+        }
 
-    });
+        questionsSent.push(question.id);
+
+        setTimeout(
+          () => {
+            currentQuestion = question;
+
+            client.say(activeChannel, `${question.question}`);
+
+            endTimeout = setTimeout(() => {
+              const options = [
+                "Son unos mancos, con razón no suben en LoL KEKW",
+                "Por eso ella no te da bola",
+                "Por eso no se ganan el mod",
+                "Vayan a jugar a la bolita",
+                "¡Eh, respondé put@ put@ put@ put@!",
+              ];
+
+              client.say(
+                activeChannel,
+                `Expiró el tiempo para responder. ${
+                  options[Math.floor(Math.random() * options.length)]
+                }`
+              );
+              currentQuestion = null;
+              endTimeout = null;
+            }, 5 * 60 * 1000);
+          },
+          notice ? 60 * 1000 : 0
+        );
+      }
+    );
   },
   checkAnswer: (user, message) => {
     if (currentQuestion) {
@@ -101,13 +120,6 @@ const surveys = {
   },
   skip: () => {
     currentQuestion = null;
-    if (endTimeout) {
-      clearTimeout(endTimeout);
-    }
-    endTimeout = null;
-  },
-  reset: () => {
-    questionsSent = [];
     if (endTimeout) {
       clearTimeout(endTimeout);
     }

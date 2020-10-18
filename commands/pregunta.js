@@ -12,7 +12,9 @@ const checkPermission = (state) =>
 const preguntaCommand = (command, messageInfo) => {
   if (checkPermission(messageInfo)) {
     if (command.args[0] === 'saltear') {
-        surveys.skip();
+      surveys.skip();
+    } else if (command.args[0] === 'va') {
+      surveys.sendQuestion(false);
     }
   }
 };
