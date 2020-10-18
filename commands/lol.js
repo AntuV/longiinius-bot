@@ -5,8 +5,8 @@ const config = require('config');
 const activeChannel = config.get('channel');
 
 let searching = false;
-
 let cooldown = false;
+let timeoutMessage = false;
 
 const checkPermission = (state) =>
   state.user.mod ||
@@ -21,7 +21,13 @@ const lolCommand = async (command, messageInfo) => {
   }
 
   if (cooldown && !checkPermission(messageInfo)) {
+    if (!timeoutMessage) {
+      client.say(activeChannel, '@' + messageInfo.user['display-name'] + ', esperá un cacho we (1 min)');
+      timeoutMessage = true;
+    }
     return;
+  } else {
+    timeoutMessage = false;
   }
 
   cooldown = true;
