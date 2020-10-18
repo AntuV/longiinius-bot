@@ -2,7 +2,7 @@ const client = require("../client.js");
 const config = require("config");
 const activeChannel = config.get("channel");
 const owner = config.get("owner");
-const surveys = require('../surveys.js');
+const surveys = require('../schedule/surveys.js');
 
 const checkPermission = (state) =>
   state.user.mod ||

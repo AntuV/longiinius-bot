@@ -1,6 +1,6 @@
 const userDict = {};
 const dayjs = require("dayjs");
-const db = require("./db.js");
+const db = require("../db.js");
 const config = require('config');
 
 const pointsHandler = (user) => {
@@ -9,7 +9,7 @@ const pointsHandler = (user) => {
     return;
   }
 
-  if (config.get('options.debug') || userDict[user.username].isBefore(dayjs().subtract(5, "minute"))) {
+  if (userDict[user.username].isBefore(dayjs().subtract(5, "minute"))) {
     db.get(
       "SELECT quantity, displayname FROM points WHERE username = ?",
       [user.username],

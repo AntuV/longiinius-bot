@@ -13,6 +13,10 @@ const clipCommand = async (command, messageInfo) => {
   if (checkPermission(messageInfo)) {
     try {
       const clip = await twitch.createClip();
+      if (!clip) {
+        return;
+      }
+
       client.say(activeChannel, `https://clips.twitch.tv/${clip.id}`);
     } catch (err) {
       client.say(activeChannel, '@' + messageInfo.user['display-name'] + ', ocurrió un error al crear el clip.');

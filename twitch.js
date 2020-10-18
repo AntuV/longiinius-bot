@@ -6,7 +6,8 @@ const client = require("tmi.js/lib/client");
 
 let access_token = null;
 let expires_at = null;
-let stream_id = null;
+
+let clipTimeout = null;
 
 const checkLogin = async () => {
   if (!access_token || expires_at.isBefore(dayjs())) {
@@ -25,7 +26,7 @@ const checkLogin = async () => {
     expires_at = dayjs().add(loginData.expires_in, "second");
     access_token = loginData.access_token;
   }
-}
+};
 
 const twitch = {
   isLive: async () => {
@@ -46,10 +47,11 @@ const twitch = {
       return false;
     }
 
-    const stream = streamData.data.find(c => c.display_name === activeChannel.toLowerCase());
+    const stream = streamData.data.find(
+      (c) => c.display_name === activeChannel.toLowerCase()
+    );
 
     if (stream) {
-      stream_id = stream.id;
       return stream.is_live;
     }
 
@@ -57,19 +59,34 @@ const twitch = {
   },
 
   createClip: async () => {
+
+    if (clipTimeout) {
+      return null;
+    }
+
     clipResponse = await fetch(
-      "https://api.twitch.tv/helix/clips?broadcaster_id=" + config.get('twitch.broadcaster_id'),
+      "https://api.twitch.tv/helix/clips?broadcaster_id=" +
+        config.get("twitch.broadcaster_id"),
       {
         method: "POST",
         headers: {
-          Authorization: "Bearer " + config.get('bot.oauth_token').substring(6),
+          Authorization: "Bearer " + config.get("bot.oauth_token").substring(6),
           "client-id": config.get("bot.client_id"),
         },
       }
     );
     let clipData = await clipResponse.json();
 
-    return clipData.data && Array.isArray(clipData.data) ? clipData.data[0] : null;
+    if (clipData.data && Array.isArray(clipData.data)) {
+      clipTimeout = true;
+      setTimeout(() => {
+        clipTimeout = false;
+      }, 45 * 1000);
+
+      return clipData.data[0];
+    } else {
+      return null;
+    }
   },
 };
 

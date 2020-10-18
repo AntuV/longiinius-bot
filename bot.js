@@ -1,8 +1,8 @@
 const client = require("./client.js");
 const commandResolver = require("./commandResolver.js");
-const pointsHandler = require("./points.js");
+const pointsHandler = require("./schedule/points.js");
 const twitch = require("./twitch.js");
-const surveys = require('./surveys.js');
+const surveys = require('./schedule/surveys.js');
 const config = require("config");
 client.connect();
 

@@ -1,6 +1,6 @@
 const client = require('../client');
 const fetch = require("node-fetch");
-const champions = require('../champions');
+const champions = require('../assets/champions');
 const config = require('config');
 const activeChannel = config.get('channel');
 const owner = config.get("owner");

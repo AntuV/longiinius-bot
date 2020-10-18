@@ -1,5 +1,4 @@
 const config = require('config');
-const client = require('./client.js');
 const activeChannel = config.get('channel');
 
 // Commands

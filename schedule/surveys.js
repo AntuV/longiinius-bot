@@ -1,6 +1,6 @@
-const db = require("./db.js");
+const db = require("../db.js");
 const config = require("config");
-const client = require("./client.js");
+const client = require("../client.js");
 const activeChannel = config.get("channel");
 const pointsname = config.get("pointsname");
 
@@ -22,6 +22,11 @@ setInterval(() => {
 const surveys = {
   running: false,
   sendQuestion: async (notice) => {
+
+    if (currentQuestion) {
+      return;
+    }
+
     db.all(
       "SELECT * FROM questions WHERE id NOT IN (" +
         questionsSent.join(",") +
