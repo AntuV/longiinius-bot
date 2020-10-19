@@ -39,10 +39,10 @@ const apostar = {
       case "frenar":
       case "parar":
       case "stop":
-        betTimeout = 0;
         if (interval) {
           clearInterval(interval);
         }
+        betTimeout = 0;
         client.say(
           activeChannel,
           "Se terminó el tiempo. ¡Mucha suerte a todos! longiiHi"
@@ -53,6 +53,11 @@ const apostar = {
           if (!runningBet) {
             return;
           }
+
+          if (interval) {
+            clearInterval(interval);
+          }
+          betTimeout = 0;
 
           const winners = bets.filter((b) => b.option === command.args[0]);
           const losers = bets.filter((b) => b.option !== command.args[0]);
