@@ -150,7 +150,7 @@ function getUsuario(username) {
         "SELECT * FROM points WHERE username LIKE ?",
         ["%" + username + "%"]
       );
-      if (!isNan(userPoints)) {
+      if (userPoints && !isNan(userPoints.quantity)) {
         resolve(userPoints);
       } else {
         reject();
