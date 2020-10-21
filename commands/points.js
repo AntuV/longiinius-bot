@@ -158,7 +158,7 @@ function getUsuario(username) {
     } catch (err) {
       db.run(
         "INSERT INTO points(username, displayname, quantity) VALUES (?, ?, ?)",
-        [username, NULL, 0]
+        [username, null, 0]
       ).then(() => {
         resolve ({
           username,
