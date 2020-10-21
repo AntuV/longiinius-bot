@@ -124,7 +124,7 @@ const pointsCommand = async (command, messageInfo) => {
           .catch(() => {
             client.say(
               activeChannel,
-              `@${messageInfo.user["display-name"]}, no se encontraron los ${pointsname} de ${command.args[0]}`
+              `@${messageInfo.user["display-name"]}, no se encontraron los ${pointsname} de ${command.args[1]}`
             );
             return;
           });
@@ -150,13 +150,24 @@ function getUsuario(username) {
         "SELECT * FROM points WHERE username LIKE ?",
         ["%" + username + "%"]
       );
-      if (userPoints) {
+      if (!isNan(userPoints)) {
         resolve(userPoints);
       } else {
         reject();
       }
     } catch (err) {
-      reject(err);
+      db.run(
+        "INSERT INTO points(username, displayname, quantity) VALUES (?, ?, ?)",
+        [username, NULL, 0]
+      ).then(() => {
+        resolve ({
+          username,
+          displayname: null,
+          quantity: 0
+        });
+      }).catch(e => {
+        reject(e);
+      });
     }
   });
 }

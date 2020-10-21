@@ -80,7 +80,7 @@ const surveys = {
       }
     );
   },
-  checkAnswer: (user, message) => {
+  checkAnswer: async (user, message) => {
     if (currentQuestion) {
       const answers = currentQuestion.answers.split(";");
       if (
@@ -93,36 +93,30 @@ const surveys = {
         }
         endTimeout = null;
 
-        db.raw.get(
-          "SELECT * FROM points WHERE username = ?",
-          [user.username],
-          (err, userPoints) => {
-            if (err) {
-              client.action(activeChannel, "Me rompí todo :c");
-              return;
-            } else if (!userPoints) {
-              db.raw.run(
-                /* "INSERT INTO points(username, displayname, quantity, questions) VALUES (?, ?, ?)",
-                [user.username, user["display-name"], REWARD, 1] */
-                "INSERT INTO points(username, displayname, quantity) VALUES (?, ?, ?)",
-                [user.username, user["display-name"], REWARD]
-              );
-            }
-
-            db.raw.run(
-              /* "UPDATE points SET quantity = ?, questions = ? WHERE username = ?",
-              [userPoints.quantity + REWARD, userPoints.questions ? userPoints.questions + 1 : 1, userPoints.username], */
+        try {
+          const userPoints = await db.get(
+            "SELECT * FROM points WHERE username = ?",
+            [user.username]
+          );
+          if (!userPoints) {
+            await db.run(
+              "INSERT INTO points(username, displayname, quantity) VALUES (?, ?, ?)",
+              [user.username, user["display-name"], 0]
+            );
+          } else {
+            await db.run(
               "UPDATE points SET quantity = ? WHERE username = ?",
-              [userPoints.quantity + REWARD, userPoints.username],
-              (err) => {
-                client.say(
-                  activeChannel,
-                  `@${user["display-name"]}, respuesta correcta. ¡Ganaste ${REWARD} ${pointsname}! longiiEz`
-                );
-              }
+              [userPoints.quantity + REWARD, userPoints.username]
+            );
+            client.say(
+              activeChannel,
+              `@${user["display-name"]}, respuesta correcta. ¡Ganaste ${REWARD} ${pointsname}! longiiEz`
             );
           }
-        );
+        } catch (err) {
+          client.action(activeChannel, "Me rompí todo :c");
+          return;
+        }
       }
     }
   },
