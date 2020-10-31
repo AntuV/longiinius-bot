@@ -66,7 +66,8 @@ const pointsCommand = async (command, messageInfo) => {
       }
 
       const top = await db.all(
-        "SELECT * FROM points ORDER BY quantity DESC LIMIT " + limit
+        "SELECT * FROM points WHERE username <> ? ORDER BY quantity DESC LIMIT " + limit,
+        [activeChannel.toLowerCase()]
       );
 
       let text = "";
