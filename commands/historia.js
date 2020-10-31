@@ -61,7 +61,14 @@ const historiaCommand = async (command, messageInfo) => {
           client.timeout(activeChannel, user, 5 * 60, "!historia");
         } else {
           client.action(activeChannel, `${user} iba en el barco y ve una isla a lo lejos. Para su sorpresa, ¡encuentra un tesoro! longiiEz (+25 GC).`);
-          client.timeout(activeChannel, user, 5 * 60, "!historia");
+          try {
+            const userPoints = await utils.getPoints(i === 0 ? user1 : user2);
+            if (userPoints) {
+              await db.run('UPDATE points SET quantity = ? WHERE username = ?', [userPoints.quantity + 25, user]);
+            }
+          } catch (err) {
+            //
+          }
         }
       }
       break;
