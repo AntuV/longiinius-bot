@@ -4,8 +4,10 @@ const activeChannel = config.get("channel");
 const owner = config.get("owner");
 const pointsname = config.get("pointsname");
 const db = require("../db.js");
+const utils = require("../common/utils.js");
+const dayjs = require("dayjs");
 
-let cooldown = false;
+let cooldown = {};
 
 const checkPermission = (state) =>
   state.user.mod ||
@@ -13,18 +15,20 @@ const checkPermission = (state) =>
   state.user.username === owner.toLowerCase();
 
 const pointsCommand = async (command, messageInfo) => {
-  if (cooldown && !checkPermission(messageInfo)) {
-    return;
+
+  if (cooldown[messageInfo.user.username]) {
+    if (dayjs().isBefore(cooldown[messageInfo.user.username].add(10, 'second'))) {
+      if (!checkPermission(messageInfo)) {
+        return;
+      }
+    }
   }
 
-  cooldown = true;
-
-  setTimeout(() => {
-    cooldown = false;
-  }, 5 * 1000);
+  cooldown[messageInfo.user.username] = dayjs();
 
   if (command.args.length === 0) {
-    getUsuario(messageInfo.user.username)
+    utils
+      .getPoints(messageInfo.user.username)
       .then((userPoints) => {
         client.say(
           activeChannel,
@@ -38,28 +42,68 @@ const pointsCommand = async (command, messageInfo) => {
         );
       });
   } else if (command.args.length === 1) {
-    getUsuario(command.args[0])
-      .then((userPoints) => {
-        client.say(
-          activeChannel,
-          `@${messageInfo.user["display-name"]}, ${
-            userPoints.displayname
-              ? userPoints.displayname
-              : userPoints.username
-          } tiene ${userPoints.quantity} ${pointsname}`
-        );
-      })
-      .catch(() => {
-        client.say(
-          activeChannel,
-          `@${messageInfo.user["display-name"]}, no se encontraron los ${pointsname} de ${command.args[0]}`
-        );
-      });
+    if (command.args[0] === "rank") {
+      const rank = await db.all('SELECT ROW_NUMBER() OVER (ORDER BY quantity DESC) as rank, * from points');
+      console.log(rank);
+      for (let i = 0; i < rank.length; i++) {
+        console.log(rank[i].username);
+        if (rank[i].username === messageInfo.user.username) {
+          client.say(
+            activeChannel,
+            `#${rank[i].rank} ${messageInfo.user["display-name"]} ${rank[i].quantity} ${pointsname}`
+          );
+          break;
+        }
+      }
+    } else if (command.args[0].includes("top")) {
+      let limit = 3;
+
+      if (utils.checkPermission(messageInfo)) {
+        const numberMatch = command.args[0].match(/\d+/);
+        if (numberMatch) {
+          limit = Number.parseInt(numberMatch[0]);
+        }
+      }
+
+      const top = await db.all(
+        "SELECT * FROM points ORDER BY quantity DESC LIMIT " + limit
+      );
+
+      let text = "";
+
+      for (let i = 1; i <= top.length; i++) {
+        text += `${i > 1 ? " | " : ""} #${i} ${
+          top[i - 1].displayname ? top[i - 1].displayname : top[i - 1].username
+        } ${top[i - 1].quantity}`;
+      }
+
+      client.say(activeChannel, text);
+    } else {
+      utils
+        .getPoints(command.args[0])
+        .then((userPoints) => {
+          client.say(
+            activeChannel,
+            `@${messageInfo.user["display-name"]}, ${
+              userPoints.displayname
+                ? userPoints.displayname
+                : userPoints.username
+            } tiene ${userPoints.quantity} ${pointsname}`
+          );
+        })
+        .catch(() => {
+          client.say(
+            activeChannel,
+            `@${messageInfo.user["display-name"]}, no se encontraron los ${pointsname} de ${command.args[0]}`
+          );
+        });
+    }
   } else if (command.args.length === 2) {
   } else if (command.args.length === 3) {
     if (command.args[0] === "agregar" || command.args[0] === "quitar") {
       if (!isNaN(command.args[2])) {
-        getUsuario(command.args[1])
+        utils
+          .getPoints(command.args[1])
           .then(async (userPoints) => {
             const pointsToAdd =
               command.args[0] === "agregar"
@@ -76,7 +120,9 @@ const pointsCommand = async (command, messageInfo) => {
 
               if (pointsToAdd > 0) {
                 try {
-                  const originUser = await getUsuario(messageInfo.user.username);
+                  const originUser = await utils.getPoints(
+                    messageInfo.user.username
+                  );
                   if (originUser.quantity >= pointsToAdd) {
                     try {
                       await db.run(
@@ -137,39 +183,5 @@ const pointsCommand = async (command, messageInfo) => {
     }
   }
 };
-
-function getUsuario(username) {
-  return new Promise(async (resolve, reject) => {
-    if (username.indexOf("@") === 0) {
-      username = username.substring(1);
-    }
-    username = username.toLowerCase();
-
-    try {
-      const userPoints = await db.get(
-        "SELECT * FROM points WHERE username LIKE ?",
-        ["%" + username + "%"]
-      );
-      if (userPoints) {
-        resolve(userPoints);
-      } else {
-        reject();
-      }
-    } catch (err) {
-      db.run(
-        "INSERT INTO points(username, displayname, quantity) VALUES (?, ?, ?)",
-        [username, null, 0]
-      ).then(() => {
-        resolve ({
-          username,
-          displayname: null,
-          quantity: 0
-        });
-      }).catch(e => {
-        reject(e);
-      });
-    }
-  });
-}
 
 module.exports = pointsCommand;

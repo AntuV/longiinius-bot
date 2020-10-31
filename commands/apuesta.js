@@ -3,7 +3,7 @@ const config = require("config");
 const activeChannel = config.get("channel");
 const owner = config.get("owner");
 const db = require("../db.js");
-const { run } = require("../db.js");
+const utils = require("../common/utils.js");
 const pointsname = config.get("pointsname");
 
 const checkPermission = (state) =>
@@ -49,6 +49,7 @@ const apostar = {
         );
         break;
       default:
+        command.args[0] = command.args[0].toLowerCase();
         if (["si", "no"].indexOf(command.args[0]) !== -1) {
           if (!runningBet) {
             return;
@@ -91,10 +92,7 @@ const apostar = {
             const bet = bets[i];
 
             try {
-              const userPoints = await db.get(
-                "SELECT * FROM points WHERE username = ?",
-                [messageInfo.user.username]
-              );
+              const userPoints = await utils.getPoints(bet.username);
               if (userPoints) {
                 let pointsToAdd = 0;
                 if (bet.option === command.args[0]) {
@@ -189,10 +187,7 @@ const apostar = {
     let pointsToBet = 0;
 
     try {
-      const userPoints = await db.get(
-        "SELECT * FROM points WHERE username = ?",
-        [messageInfo.user.username]
-      );
+      const userPoints = await utils.getPoints(messageInfo.user.username);
       if (userPoints) {
         if (
           isNaN(Number.parseInt(command.args[0], 10)) &&

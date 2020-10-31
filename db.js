@@ -72,10 +72,10 @@ const upgradeSchema = async (version) => {
     await db.run("UPDATE schema_version SET version = 3");
   }
 
-  /* if (version < 4) {
-    await db.run("ALTER TABLE points ADD questions INT;");
+  if (version < 4) {
+    await db.run("CREATE TABLE blocks(username TEXT, command TEXT)");
     await db.run("UPDATE schema_version SET version = 4");
-  } */
+  }
   
 }
 

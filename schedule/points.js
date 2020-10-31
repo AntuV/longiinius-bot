@@ -1,44 +1,38 @@
 const userDict = {};
 const dayjs = require("dayjs");
 const db = require("../db.js");
-const config = require('config');
+const config = require("config");
+const utils = require("../common/utils.js");
 
-const pointsHandler = (user) => {
-
+const pointsHandler = async (user) => {
   if (!userDict[user.username]) {
     userDict[user.username] = dayjs();
     return;
   }
 
-  if (config.get('options.debug') || userDict[user.username].isBefore(dayjs().subtract(5, "minute"))) {
-    db.raw.get(
-      "SELECT quantity, displayname FROM points WHERE username = ?",
-      [user.username],
-      (err, userPoints) => {
-        if (err || !userPoints) {
-          db.raw.run(
-            "INSERT INTO points(username, displayname, quantity) VALUES (?, ?, ?)",
-            [user.username, user['display-name'], 1]
-          );
-          return;
-        }
+  if (
+    config.get("options.debug") ||
+    userDict[user.username].isBefore(dayjs().subtract(5, "minute"))
+  ) {
+    try {
+      const userPoints = await utils.getPoints(user.username);
 
-        if (!userPoints.displayname) {
-          db.raw.run("UPDATE points SET displayname = ? WHERE username = ?", [
-            user['display-name'],
-            user.username,
-          ]);
-        }
-
-        db.raw.run("UPDATE points SET quantity = ? WHERE username = ?", [
-          userPoints.quantity + 1,
+      if (!userPoints.displayname) {
+        await db.run("UPDATE points SET displayname = ? WHERE username = ?", [
+          user["display-name"],
           user.username,
         ]);
       }
-    );
 
-    userDict[user.username] = dayjs();
-    return;
+      await db.run("UPDATE points SET quantity = ? WHERE username = ?", [
+        userPoints.quantity + 1,
+        user.username,
+      ]);
+
+      userDict[user.username] = dayjs();
+    } catch (err) {
+      //
+    }
   }
 };
 

@@ -1,6 +1,7 @@
 const db = require("../db.js");
 const config = require("config");
 const client = require("../client.js");
+const utils = require("../common/utils.js");
 const activeChannel = config.get("channel");
 const pointsname = config.get("pointsname");
 
@@ -17,7 +18,7 @@ setInterval(() => {
   if (surveys.running) {
     surveys.sendQuestion(true);
   }
-}, 30 * 60 * 1000);
+}, 60 * 60 * 1000);
 
 const surveys = {
   running: false,
@@ -44,11 +45,13 @@ const surveys = {
         if (notice) {
           client.say(
             activeChannel,
-            `¡EH GUACHOS! longiiHi En un minuto cae pregunta por ${REWARD} ${pointsname}`
+            `¡EH GUACHOS! longiiHi Enseguida cae pregunta por ${REWARD} ${pointsname}`
           );
         }
 
         questionsSent.push(question.id);
+
+        const randomTime = (Math.floor(Math.random() * 3) + 1) * 30;
 
         setTimeout(
           () => {
@@ -75,7 +78,7 @@ const surveys = {
               endTimeout = null;
             }, 5 * 60 * 1000);
           },
-          notice ? 60 * 1000 : 0
+          notice ? randomTime * 1000 : 0
         );
       }
     );
@@ -94,10 +97,7 @@ const surveys = {
         endTimeout = null;
 
         try {
-          const userPoints = await db.get(
-            "SELECT * FROM points WHERE username = ?",
-            [user.username]
-          );
+          const userPoints = await utils.getPoints(user.username);
           if (!userPoints) {
             await db.run(
               "INSERT INTO points(username, displayname, quantity) VALUES (?, ?, ?)",

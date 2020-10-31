@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html ng-app="longibot" lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>LongiBot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <link rel="stylesheet"
+          href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.24/angular-material.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            background-image: url('bg.jpg');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+        }
+
+        md-content {
+            background-color: transparent;
+        }
+
+        md-card {
+            background-color: white;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            margin-top: 25px;
+        }
+
+        div.voice {
+            justify-content: center;
+        }
+
+        div.voice md-input-container {
+            width: 75%;
+        }
+
+        div.speed {
+            width: 75%;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div ng-controller="AppCtrl" ng-cloak>
+        <md-content class="md-padding" layout-xs="column" layout="row">
+            <div flex-xs flex-gt-xs="100" layout="column">
+                <md-card>
+                    <md-card-title>
+                        <md-card-title-text>
+                            <span class="md-headline">TTS</span>
+                        </md-card-title-text>
+                    </md-card-title>
+                    <md-card-content>
+                        <div class="voice" layout="row">
+                            <md-input-container>
+                                <label>Voz</label>
+                                <md-select ng-model="selectedVoice" ng-change="onVoiceChange()" aria-label="voz">
+                                    <md-option><em>Ninguna</em></md-option>
+                                    <md-option ng-repeat="voice in voices" ng-value="voice">
+                                        {{ voice.name }}
+                                    </md-option>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+                        <div class="speed" layout="row">
+                            <div flex="20" layout layout-align="center center">
+                                <span class="md-body-1">Velocidad</span>
+                            </div>
+                            <md-slider flex md-discrete ng-model="voiceSpeed" ng-change="onVoiceChange()" step="1"
+                                       min="1" max="10" aria-label="velocidad"></md-slider>
+                        </div>
+
+                        <md-list flex>
+                            <md-subheader class="md-no-sticky">Mensajes</md-subheader>
+                            <md-list-item class="md-2-line" ng-repeat="message in messages">
+                                <div class="md-list-item-text" layout="column">
+                                    <h3>{{ message.username }}</h3>
+                                    <p>{{ message.message }}</p>
+                                </div>
+                                <md-button class="md-secondary md-icon-button" ng-click="onBlockUser(message, $event)"
+                                           aria-label="bloquear">
+                                    <i class="material-icons">block</i>
+                                </md-button>
+                            </md-list-item>
+                        </md-list>
+                    </md-card-content>
+                </md-card>
+            </div>
+        </md-content>
+    </div>
+
+    <!-- Angular Material Dependencies -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular-animate.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular-aria.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular-messages.min.js"></script>
+
+    <!-- Angular Material Javascript now available via Google CDN; version 1.1.24 used here -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.24/angular-material.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"
+            integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg=="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.1/socket.io.min.js"></script>
+    <script src="main.js"></script>
+</body>
+
+</html>

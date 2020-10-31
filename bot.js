@@ -4,9 +4,12 @@ const pointsHandler = require("./schedule/points.js");
 const twitch = require("./twitch.js");
 const surveys = require('./schedule/surveys.js');
 const config = require("config");
-client.connect();
+const webserver = require("./webserver.js");
+const utils = require("./common/utils.js");
 
-const userList = [];
+client.connect().then(() => {
+  webserver.start();
+});
 
 isLive = false;
 
@@ -36,7 +39,7 @@ client.on("chat", (channel, user, message, self) => {
   if (message.indexOf("!") === 0) {
     channel = {
       name: channel,
-      users: userList
+      users: utils.userList
     };
     commandResolver.resolve(channel, user, message);
   }
@@ -50,13 +53,13 @@ client.on("chat", (channel, user, message, self) => {
 client.on("join", (channel, user, self) => {
   if (!self) return;
 
-  if (userList.indexOf(user) === -1) {
-    userList.push(user);
+  if (utils.userList.indexOf(user) === -1) {
+    utils.userList.push(user);
   }
 });
 
 client.on("part", (channel, user, self) => {
   if (!self) return;
 
-  userList = userList.filter((u) => u !== user);
+  utils.userList = utils.userList.filter((u) => u !== user);
 });

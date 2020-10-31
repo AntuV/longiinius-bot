@@ -8,6 +8,8 @@ const pointsCommand = require("./commands/points.js");
 const clipCommand = require("./commands/clip.js");
 const preguntaCommand = require("./commands/pregunta.js");
 const apuesta = require("./commands/apuesta.js");
+const ttsCommand = require("./commands/tts.js");
+const historiaCommand = require("./commands/historia.js");
 
 let state = null;
 
@@ -38,6 +40,12 @@ const callCommand = async (command, messageInfo) => {
       break;
     case "no":
       apuesta.option("no", command, messageInfo);
+      break;
+    case 'tts':
+      ttsCommand(command, messageInfo);
+      break;
+    case 'historia':
+      historiaCommand(command, messageInfo);
       break;
     default:
       break;
