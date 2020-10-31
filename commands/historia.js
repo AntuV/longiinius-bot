@@ -20,15 +20,13 @@ const historiaCommand = async (command, messageInfo) => {
   }
 
   if (userCooldown[messageInfo.user.username]) {
-    if (dayjs().isBefore(userCooldown[messageInfo.user.username].add(1, 'hour'))) {
+    if (dayjs().isBefore(userCooldown[messageInfo.user.username].add(8, 'hour'))) {
       return;
     }
   }
 
-  const storyNumber = 1/*Math.floor(Math.random() * 2) + 1*/;
+  const storyNumber = Math.floor(Math.random() * 2) + 1;
   const random = Math.floor(Math.random() * 2);
-
-  console.log(storyNumber);
 
   let username = null;
 
@@ -68,8 +66,61 @@ const historiaCommand = async (command, messageInfo) => {
       }
       break;
     case 2:
-      client.action(activeChannel, "Se muere " + command.args[0]);
-      client.timeout(activeChannel, command.args[0], 5 * 60, "!historia");
+      const divisiones = [
+        { liga: 'Hierro', puntos: 1 },
+        { liga: 'Bronce', puntos: 3 },
+        { liga: 'Plata', puntos: 5 },
+        { liga: 'Oro', puntos: 8 },
+        { liga: 'Platino', puntos: 10 },
+        { liga: 'Diamante', puntos: 15 },
+        { liga: 'Master', puntos: 20 },
+        { liga: 'GrandMaster', puntos: 25 },
+        { liga: 'Challenger', puntos: 30 }
+      ];
+
+      const division = divisiones[Math.floor(Math.random() * divisiones.length)];
+
+      if (username) {
+        const users = [messageInfo.user.username, username];
+        const user1 = users[random];
+        const user2 = user1 === messageInfo.user.username ? username : messageInfo.user['display-name'];
+
+        const randomStory = Math.floor(Math.random() * 2);
+
+        if (randomStory === 0) {
+          client.action(activeChannel, `${user1} y ${user2} jugaron una ranked duo. ${user1} la troleó y ambos bajaron a Hierro.`);
+          client.timeout(activeChannel, user1, 5 * 60, "!historia");
+          client.timeout(activeChannel, user2, 5 * 60, "!historia");
+        } else if (randomStory === 1) {
+          client.action(activeChannel, `${user1} y ${user2} jugaron una ranked duo. ¡Subieron a ${division.liga}! longiiJhin (+${division.puntos} GC)`);
+          for (let i = 0; i < 2; i++) {
+            try {
+              const userPoints = await utils.getPoints(i === 0 ? user1 : user2);
+              if (userPoints) {
+                await db.run('UPDATE points SET quantity = ? WHERE username = ?', [userPoints.quantity + division.puntos, i === 0 ? user1 : user2]);
+              }
+            } catch (err) {
+              //
+            }
+          }
+        }
+      } else {
+        const user = messageInfo.user.username;
+        if (Math.floor(Math.random() * 2)) {
+          client.action(activeChannel, `${user} jugó una SoloQ. La troleó y bajó a Hierro.`);
+          client.timeout(activeChannel, user, 5 * 60, "!historia");
+        } else {
+          client.action(activeChannel, `${user} jugó una SoloQ. ¡Subió a ${division.liga}! longiiJhin (+${division.puntos} GC)`);
+          try {
+            const userPoints = await utils.getPoints(user);
+            if (userPoints) {
+              await db.run('UPDATE points SET quantity = ? WHERE username = ?', [userPoints.quantity + division.puntos, user]);
+            }
+          } catch (err) {
+            //
+          }
+        }
+      }
       break;
     default:
       break;
