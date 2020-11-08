@@ -25,8 +25,11 @@ io.on("connection", function (socket) {
 
 const webserver = {
   start: () => {
-    server.listen(3700, () => {
-      console.log(`Servidor iniciado en el puerto 3700`);
+    return new Promise(resolve => {
+      server.listen(3700, () => {
+        console.log(`Servidor iniciado en el puerto 3700`);
+        resolve();
+      });
     });
   },
   tts: (user, message) => {

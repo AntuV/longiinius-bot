@@ -1,5 +1,5 @@
 let tmi = require("tmi.js");
-const config = require("config");
+const config = require("./config");
 
 let client = new tmi.client({
   options: {
@@ -13,7 +13,7 @@ let client = new tmi.client({
     username: config.get("bot.username"),
     password: config.get("bot.oauth_token"),
   },
-  channels: [config.get("channel")],
+  channels: [config.get("channel"), config.get("bot.username")],
 });
 
 module.exports = client;

@@ -1,16 +1,8 @@
-const client = require("../client.js");
-const config = require("config");
-const activeChannel = config.get("channel");
-const owner = config.get("owner");
+const utils = require('../common/utils.js');
 const surveys = require('../schedule/surveys.js');
 
-const checkPermission = (state) =>
-  state.user.mod ||
-  state.user.username === activeChannel.toLowerCase() ||
-  state.user.username === owner.toLowerCase();
-
 const preguntaCommand = (command, messageInfo) => {
-  if (checkPermission(messageInfo)) {
+  if (utils.checkPermission(messageInfo)) {
     if (command.args[0] === 'saltear') {
       surveys.skip();
     } else if (command.args[0] === 'va') {

@@ -1,6 +1,5 @@
-const config = require("config");
-const activeChannel = config.get("channel");
-const owner = config.get("owner");
+const dayjs = require("dayjs");
+const config = require("../config.js");
 const db = require('../db.js');
 
 const utils = {
@@ -8,8 +7,8 @@ const utils = {
   checkPermission: (messageInfo) => {
     return (
       !!messageInfo.user.mod ||
-      messageInfo.user.username === activeChannel.toLowerCase() ||
-      messageInfo.user.username === owner.toLowerCase()
+      messageInfo.user.username === config.get('channel').toLowerCase() ||
+      messageInfo.user.username === config.get('owner').toLowerCase()
     );
   },
   getPoints: (username) => {
@@ -41,6 +40,24 @@ const utils = {
         });
       }
     });
+  },
+  setCooldown: async (username, command, expiration) => {
+    const cooldown = await db.get('SELECT * FROM cooldowns WHERE username = ? AND command = ?', [username, command]);
+    if (!cooldown) {
+      await db.run('INSERT INTO cooldowns(username, command, expiration) VALUES (?, ?, ?)', [username, command, expiration.toISOString()]);
+    } else {
+      await db.run('UPDATE cooldowns SET expiration = ? WHERE username = ? AND command = ?', [expiration.toISOString(), username, command]);
+    }
+  },
+  hasCooldown: async (username, command) => {
+    const now = dayjs();
+    const cooldown = await db.get('SELECT * FROM cooldowns WHERE username = ? AND command = ?', [username, command]);
+    console.log(dayjs(cooldown.expiration));
+    if (cooldown) {
+      return now.isBefore(dayjs(cooldown.expiration));
+    } else {
+      return false;
+    }
   }
 };
 

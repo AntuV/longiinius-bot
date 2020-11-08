@@ -9,7 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "config": "^3.0.1",
     "dayjs": "^1.9.1",
     "express": "^4.17.1",
     "node-fetch": "^2.6.1",

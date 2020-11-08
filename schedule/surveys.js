@@ -1,18 +1,17 @@
 const db = require("../db.js");
-const config = require("config");
 const client = require("../client.js");
 const utils = require("../common/utils.js");
-const activeChannel = config.get("channel");
-const pointsname = config.get("pointsname");
+const config = require("../config.js");
 
-const REWARD = 15;
+const REWARD = 20;
 
-let questionsSent = [];
+let sent_iteration = null;
 let currentQuestion = null;
 let endTimeout = null;
+let questions = [];
 
 /**
- * Cada 30 minutos se fija si está en vivo y envía una pregunta
+ * Cada 60 minutos se fija si está en vivo y envía una pregunta
  */
 setInterval(() => {
   if (surveys.running) {
@@ -27,60 +26,59 @@ const surveys = {
       return;
     }
 
-    db.raw.all(
-      "SELECT * FROM questions WHERE id NOT IN (" +
-        questionsSent.join(",") +
-        ")",
-      [],
-      (err, questions) => {
-        // Si ya se preguntaron todas, reseteo
-        if (questions.length === 0) {
-          questionsSent = [];
-          surveys.sendQuestion(notice);
-          return;
-        }
+    if (sent_iteration === null) {
+      sent_iteration = (await db.get('SELECT MIN(times_sent) as times_sent FROM questions')).times_sent;
+    }
 
-        let question = questions[Math.floor(Math.random() * questions.length)];
+    if (questions.length === 0) {
+      questions = await db.all("SELECT * FROM questions WHERE times_sent = ?", [sent_iteration]);
 
-        if (notice) {
-          client.say(
-            activeChannel,
-            `¡EH GUACHOS! longiiHi Enseguida cae pregunta por ${REWARD} ${pointsname}`
-          );
-        }
-
-        questionsSent.push(question.id);
-
-        const randomTime = (Math.floor(Math.random() * 3) + 1) * 30;
-
-        setTimeout(
-          () => {
-            currentQuestion = question;
-
-            client.say(activeChannel, `${question.question}`);
-
-            endTimeout = setTimeout(() => {
-              const options = [
-                "Son unos mancos, con razón no suben en LoL KEKW",
-                "Por eso ella no te da bola",
-                "Por eso no se ganan el mod",
-                "Vayan a jugar a la bolita",
-                "¡Eh, respondé put@ put@ put@ put@!",
-              ];
-
-              client.say(
-                activeChannel,
-                `Expiró el tiempo para responder. ${
-                  options[Math.floor(Math.random() * options.length)]
-                }`
-              );
-              currentQuestion = null;
-              endTimeout = null;
-            }, 5 * 60 * 1000);
-          },
-          notice ? randomTime * 1000 : 0
-        );
+      if (questions.length === 0) {
+        sent_iteration++;
+        surveys.sendQuestion(notice);
       }
+    }
+
+    let question = questions[Math.floor(Math.random() * questions.length)];
+
+    if (notice) {
+      client.say(
+        config.get('channel'),
+        `¡EH GUACHOS! longiiHi Enseguida cae pregunta por ${REWARD} ${config.get('pointsname')}`
+      );
+    }
+
+    questions = questions.filter(q => q.id !== question.id);
+
+    const randomTime = (Math.floor(Math.random() * 3) + 1) * 30;
+
+    setTimeout(
+      () => {
+        currentQuestion = question;
+
+        client.say(config.get('channel'), `${question.question}`);
+
+        db.run('UPDATE questions SET times_sent = ? WHERE id = ?', [sent_iteration + 1, question.id]);
+
+        endTimeout = setTimeout(() => {
+          const options = [
+            "Son unos mancos, con razón no suben en LoL KEKW",
+            "Por eso ella no te da bola",
+            "Por eso no se ganan el mod",
+            "Vayan a jugar a la bolita",
+            "¡Eh, respondé put@ put@ put@ put@!",
+          ];
+
+          client.say(
+            config.get('channel'),
+            `Expiró el tiempo para responder. ${options[Math.floor(Math.random() * options.length)]
+            }`
+          );
+          currentQuestion = null;
+          endTimeout = null;
+        }, 5 * 60 * 1000);
+      },
+      notice ? randomTime * 1000 : 0
     );
   },
   checkAnswer: async (user, message) => {
@@ -98,23 +96,16 @@ const surveys = {
 
         try {
           const userPoints = await utils.getPoints(user.username);
-          if (!userPoints) {
-            await db.run(
-              "INSERT INTO points(username, displayname, quantity) VALUES (?, ?, ?)",
-              [user.username, user["display-name"], 0]
-            );
-          } else {
-            await db.run(
-              "UPDATE points SET quantity = ? WHERE username = ?",
-              [userPoints.quantity + REWARD, userPoints.username]
-            );
-            client.say(
-              activeChannel,
-              `@${user["display-name"]}, respuesta correcta. ¡Ganaste ${REWARD} ${pointsname}! longiiEz`
-            );
-          }
+          await db.run(
+            "UPDATE points SET quantity = ? WHERE username = ?",
+            [userPoints.quantity + REWARD, userPoints.username]
+          );
+          client.say(
+            config.get('channel'),
+            `@${user["display-name"]}, respuesta correcta. ¡Ganaste ${REWARD} ${config.get('pointsname')}! longiiEz`
+          );
         } catch (err) {
-          client.action(activeChannel, "Me rompí todo :c");
+          client.action(config.get('channel'), "Me rompí todo :c");
           return;
         }
       }

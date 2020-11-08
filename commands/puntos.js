@@ -1,24 +1,16 @@
 const client = require("../client.js");
-const config = require("config");
-const activeChannel = config.get("channel");
-const owner = config.get("owner");
-const pointsname = config.get("pointsname");
 const db = require("../db.js");
 const utils = require("../common/utils.js");
 const dayjs = require("dayjs");
+const config = require("../config.js");
 
 let cooldown = {};
 
-const checkPermission = (state) =>
-  state.user.mod ||
-  state.user.username === activeChannel.toLowerCase() ||
-  state.user.username === owner.toLowerCase();
-
-const pointsCommand = async (command, messageInfo) => {
+const puntosCommand = async (command, messageInfo) => {
 
   if (cooldown[messageInfo.user.username]) {
     if (dayjs().isBefore(cooldown[messageInfo.user.username].add(10, 'second'))) {
-      if (!checkPermission(messageInfo)) {
+      if (!utils.checkPermission(messageInfo)) {
         return;
       }
     }
@@ -31,14 +23,14 @@ const pointsCommand = async (command, messageInfo) => {
       .getPoints(messageInfo.user.username)
       .then((userPoints) => {
         client.say(
-          activeChannel,
-          `@${messageInfo.user["display-name"]}, tenés ${userPoints.quantity} ${pointsname}`
+          config.get('channel'),
+          `@${messageInfo.user["display-name"]}, tenés ${userPoints.quantity} ${config.get('pointsname')}`
         );
       })
       .catch(() => {
         client.say(
-          activeChannel,
-          `@${messageInfo.user["display-name"]}, no tenés ${pointsname}`
+          config.get('channel'),
+          `@${messageInfo.user["display-name"]}, no tenés ${config.get('pointsname')}`
         );
       });
   } else if (command.args.length === 1) {
@@ -49,8 +41,8 @@ const pointsCommand = async (command, messageInfo) => {
         console.log(rank[i].username);
         if (rank[i].username === messageInfo.user.username) {
           client.say(
-            activeChannel,
-            `#${rank[i].rank} ${messageInfo.user["display-name"]} ${rank[i].quantity} ${pointsname}`
+            config.get('channel'),
+            `#${rank[i].rank} ${messageInfo.user["display-name"]} ${rank[i].quantity} ${config.get('pointsname')}`
           );
           break;
         }
@@ -58,7 +50,7 @@ const pointsCommand = async (command, messageInfo) => {
     } else if (command.args[0].includes("top")) {
       let limit = 3;
 
-      if (utils.checkPermission(messageInfo)) {
+      if (utils.utils.checkPermission(messageInfo)) {
         const numberMatch = command.args[0].match(/\d+/);
         if (numberMatch) {
           limit = Number.parseInt(numberMatch[0]);
@@ -67,7 +59,7 @@ const pointsCommand = async (command, messageInfo) => {
 
       const top = await db.all(
         "SELECT * FROM points WHERE username <> ? ORDER BY quantity DESC LIMIT " + limit,
-        [activeChannel.toLowerCase()]
+        [config.get('channel').toLowerCase()]
       );
 
       let text = "";
@@ -78,24 +70,24 @@ const pointsCommand = async (command, messageInfo) => {
         } ${top[i - 1].quantity}`;
       }
 
-      client.say(activeChannel, text);
+      client.say(config.get('channel'), text);
     } else {
       utils
         .getPoints(command.args[0])
         .then((userPoints) => {
           client.say(
-            activeChannel,
+            config.get('channel'),
             `@${messageInfo.user["display-name"]}, ${
               userPoints.displayname
                 ? userPoints.displayname
                 : userPoints.username
-            } tiene ${userPoints.quantity} ${pointsname}`
+            } tiene ${userPoints.quantity} ${config.get('pointsname')}`
           );
         })
         .catch(() => {
           client.say(
-            activeChannel,
-            `@${messageInfo.user["display-name"]}, no se encontraron los ${pointsname} de ${command.args[0]}`
+            config.get('channel'),
+            `@${messageInfo.user["display-name"]}, no se encontraron los ${config.get('pointsname')} de ${command.args[0]}`
           );
         });
     }
@@ -116,7 +108,7 @@ const pointsCommand = async (command, messageInfo) => {
                 ? userPoints.quantity + pointsToAdd
                 : 0;
 
-            if (!checkPermission(messageInfo)) {
+            if (!utils.checkPermission(messageInfo)) {
               let valid = false;
 
               if (pointsToAdd > 0) {
@@ -145,7 +137,7 @@ const pointsCommand = async (command, messageInfo) => {
 
               if (!valid) {
                 return client.say(
-                  activeChannel,
+                  config.get('channel'),
                   `@${messageInfo.user["display-name"]}, no podés transferir esa cantidad.`
                 );
               }
@@ -157,12 +149,12 @@ const pointsCommand = async (command, messageInfo) => {
                 [points, userPoints.username]
               );
               client.say(
-                activeChannel,
+                config.get('channel'),
                 `@${messageInfo.user["display-name"]}, ${
                   userPoints.displayname
                     ? userPoints.displayname
                     : userPoints.username
-                } ahora tiene ${points} ${pointsname}`
+                } ahora tiene ${points} ${config.get('pointsname')}`
               );
             } catch (err) {
               console.error(err);
@@ -170,14 +162,14 @@ const pointsCommand = async (command, messageInfo) => {
           })
           .catch(() => {
             client.say(
-              activeChannel,
-              `@${messageInfo.user["display-name"]}, no se encontraron los ${pointsname} de ${command.args[1]}`
+              config.get('channel'),
+              `@${messageInfo.user["display-name"]}, no se encontraron los ${config.get('pointsname')} de ${command.args[1]}`
             );
             return;
           });
       } else {
         client.say(
-          activeChannel,
+          config.get('channel'),
           `@${messageInfo.user["display-name"]}, el número ingresado es inválido`
         );
       }
@@ -185,4 +177,4 @@ const pointsCommand = async (command, messageInfo) => {
   }
 };
 
-module.exports = pointsCommand;
+module.exports = puntosCommand;

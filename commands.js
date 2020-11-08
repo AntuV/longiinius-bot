@@ -1,15 +1,13 @@
-const config = require("config");
-const activeChannel = config.get("channel");
-
-// Commands
 const lolCommand = require("./commands/lol.js");
 const animeCommand = require("./commands/anime.js");
-const pointsCommand = require("./commands/points.js");
+const puntosCommand = require("./commands/puntos.js");
 const clipCommand = require("./commands/clip.js");
 const preguntaCommand = require("./commands/pregunta.js");
 const apuesta = require("./commands/apuesta.js");
 const ttsCommand = require("./commands/tts.js");
 const historiaCommand = require("./commands/historia.js");
+const configCommand = require("./commands/config.js");
+const db = require("./db.js");
 
 let state = null;
 
@@ -24,7 +22,7 @@ const callCommand = async (command, messageInfo) => {
       animeCommand(command, messageInfo);
       break;
     case "puntos":
-      pointsCommand(command, messageInfo);
+      puntosCommand(command, messageInfo);
       break;
     case "clip":
       clipCommand(command, messageInfo);
@@ -35,19 +33,32 @@ const callCommand = async (command, messageInfo) => {
     case "apuesta":
       apuesta.command(command, messageInfo);
       break;
-    case "si":
-      apuesta.option("si", command, messageInfo);
-      break;
-    case "no":
-      apuesta.option("no", command, messageInfo);
-      break;
     case 'tts':
       ttsCommand(command, messageInfo);
       break;
     case 'historia':
       historiaCommand(command, messageInfo);
       break;
+
+
+    /* 
+     * ADMIN
+     */
+    case 'config':
+      configCommand(command, messageInfo);
+      break;
+
     default:
+
+      if (command.command) {
+        command.command = command.command.toLowerCase();
+
+        if (apuesta.currentBet) { 
+          if (!apuesta.currentBet.winner && (command.command === apuesta.currentBet.first_option || command.command === apuesta.currentBet.second_option)) {
+            apuesta.option(command.command, command, messageInfo);
+          }
+        }
+      }
       break;
   }
 };

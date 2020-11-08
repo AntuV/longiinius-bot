@@ -1,8 +1,8 @@
 const userDict = {};
 const dayjs = require("dayjs");
 const db = require("../db.js");
-const config = require("config");
 const utils = require("../common/utils.js");
+const config = require("../config.js");
 
 const pointsHandler = async (user) => {
   if (!userDict[user.username]) {

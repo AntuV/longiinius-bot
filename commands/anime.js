@@ -1,18 +1,12 @@
 const client = require("../client.js");
-const config = require("config");
-const activeChannel = config.get("channel");
-const owner = config.get("owner");
+const utils = require("../common/utils.js");
+const config = require("../config.js");
 const db = require("../db.js");
-
-const checkPermission = (state) =>
-  state.user.mod ||
-  state.user.username === activeChannel.toLowerCase() ||
-  state.user.username === owner.toLowerCase();
 
 const animeCommand = async (command, messageInfo) => {
   if (command.args.length === 0) {
     client.say(
-      activeChannel,
+      config.get('channel'),
       `@${messageInfo.user["display-name"]}, tenés que ingresar el nombre del animé después del comando`
     );
     return;
@@ -20,13 +14,13 @@ const animeCommand = async (command, messageInfo) => {
 
   switch (command.args[0]) {
     case "add":
-      if (!checkPermission(messageInfo)) {
+      if (!utils.checkPermission(messageInfo)) {
         return;
       }
 
       if (command.args.length < 2) {
         client.say(
-          activeChannel,
+          config.get('channel'),
           "Tenés que indicar el nombre del anime a agregar. Por ejemplo: !anime add Naruto"
         );
         return;
@@ -43,37 +37,37 @@ const animeCommand = async (command, messageInfo) => {
               command.args[1],
             ]);
 
-            client.say(activeChannel, "Agregado anime: " + command.args[1]);
+            client.say(config.get('channel'), "Agregado anime: " + command.args[1]);
           } catch (err) {
             console.error(err);
             client.say(
-              activeChannel,
+              config.get('channel'),
               "Ocurrió un error al agregar el anime " + command.args[1]
             );
           }
         } else {
           client.say(
-            activeChannel,
+            config.get('channel'),
             "El anime " + command.args[1] + " ya existe."
           );
         }
       } catch (err) {
         console.error(err);
         client.say(
-          activeChannel,
+          config.get('channel'),
           "Ocurrió un error al buscar si el anime existe"
         );
         return;
       }
       break;
     case "set":
-      if (!checkPermission(messageInfo)) {
+      if (!utils.checkPermission(messageInfo)) {
         return;
       }
 
       if (command.args.length < 2) {
         client.say(
-          activeChannel,
+          config.get('channel'),
           "Tenés que indicar el nombre del anime y el capítulo actual. Por ejemplo: !anime set naruto 207"
         );
         return;
@@ -86,7 +80,7 @@ const animeCommand = async (command, messageInfo) => {
 
         if (row === undefined) {
           client.say(
-            activeChannel,
+            config.get('channel'),
             "El anime " + command.args[1] + " no existe."
           );
         } else {
@@ -97,13 +91,13 @@ const animeCommand = async (command, messageInfo) => {
             ]);
 
             client.say(
-              activeChannel,
+              config.get('channel'),
               "El anime " + command.args[1] + " fue actualizado."
             );
           } catch (err) {
             console.error(err);
             client.say(
-              activeChannel,
+              config.get('channel'),
               "Ocurrió un error actualizando el anime " + command.args[1]
             );
           }
@@ -111,7 +105,7 @@ const animeCommand = async (command, messageInfo) => {
       } catch (err) {
         console.error(err);
         client.say(
-          activeChannel,
+          config.get('channel'),
           "Ocurrió un error verificando si existe el anime " + command.args[1]
         );
         return;
@@ -130,19 +124,19 @@ const animeCommand = async (command, messageInfo) => {
 
         if (!row) {
           client.say(
-            activeChannel,
+            config.get('channel'),
             "Ocurrió un error obteniendo el capítulo actual de " +
-              command.args[0]
+            command.args[0]
           );
         } else {
           client.say(
-            activeChannel,
+            config.get('channel'),
             `@${messageInfo.user["display-name"]}, ${row["name"]} va por el capítulo ${row["chapter"]}.`
           );
         }
       } catch (err) {
         client.say(
-          activeChannel,
+          config.get('channel'),
           "Ocurrió un error obteniendo el capítulo actual de " + command.args[0]
         );
       }

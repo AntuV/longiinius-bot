@@ -1,7 +1,6 @@
-const config = require("config");
 const fetch = require("node-fetch");
-let activeChannel = config.get("channel");
 const dayjs = require("dayjs");
+const config = require("./config");
 
 let access_token = null;
 let expires_at = null;
@@ -32,7 +31,7 @@ const twitch = {
     await checkLogin();
 
     streamResponse = await fetch(
-      "https://api.twitch.tv/helix/search/channels?query=" + activeChannel,
+      "https://api.twitch.tv/helix/search/channels?query=" + config.get('channel'),
       {
         headers: {
           Authorization: "Bearer " + access_token,
@@ -47,7 +46,7 @@ const twitch = {
     }
 
     const stream = streamData.data.find(
-      (c) => c.display_name === activeChannel.toLowerCase()
+      (c) => c.display_name === config.get('channel').toLowerCase()
     );
 
     if (stream) {

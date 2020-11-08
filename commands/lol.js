@@ -1,18 +1,26 @@
 const client = require('../client');
 const fetch = require("node-fetch");
 const champions = require('../assets/champions');
-const config = require('config');
-const activeChannel = config.get('channel');
-const owner = config.get("owner");
+const utils = require('../common/utils');
+const config = require('../config');
+
+urls = {
+  BR: 'https://br1.api.riotgames.com',
+  EUN: 'https://eun1.api.riotgames.com',
+  EUW: 'https://euw1.api.riotgames.com',
+  JP: 'https://jp1.api.riotgames.com',
+  KR: 'https://kr.api.riotgames.com',
+  LAN: 'https://la1.api.riotgames.com',
+  LAS: 'https://la2.api.riotgames.com',
+  NA: 'https://na1.api.riotgames.com',
+  OC: 'https://oc1.api.riotgames.com',
+  TR: 'https://tr1.api.riotgames.com',
+  RU: 'https://ru.api.riotgames.com'
+};
 
 let searching = false;
 let cooldown = false;
 let timeoutMessage = false;
-
-const checkPermission = (state) =>
-  state.user.mod ||
-  state.user.username === activeChannel.toLowerCase() ||
-  state.user.username === owner.toLowerCase();
 
 const lolCommand = async (command, messageInfo) => {
 
@@ -21,9 +29,9 @@ const lolCommand = async (command, messageInfo) => {
     return;
   }
 
-  if (cooldown && !checkPermission(messageInfo)) {
+  if (cooldown && !utils.checkPermission(messageInfo)) {
     if (!timeoutMessage) {
-      client.say(activeChannel, '@' + messageInfo.user['display-name'] + ', esperá un cacho we (1 min)');
+      client.say(config.get('channel'), '@' + messageInfo.user['display-name'] + ', esperá un cacho we (1 min)');
       timeoutMessage = true;
     }
     return;
@@ -38,12 +46,12 @@ const lolCommand = async (command, messageInfo) => {
   // Si no escribió nombre de campeón
   if (command.args.length === 0) {
     searching = false;
-    return client.say(activeChannel, '@' + messageInfo.user['display-name'] + ', se debe buscar el nombre del campeón. Por ejemplo: !lol Jhin.');
+    return client.say(config.get('channel'), '@' + messageInfo.user['display-name'] + ', se debe buscar el nombre del campeón. Por ejemplo: !lol Jhin.');
   }
 
   // Busco la partida actual
   try {
-    let response = await fetch(config.get('lol.url') + '/lol/spectator/v4/active-games/by-summoner/' + config.get('lol.account_id'), {
+    let response = await fetch(urls[config.get('lol.url')] + '/lol/spectator/v4/active-games/by-summoner/' + config.get('lol.account_id'), {
       headers: { "X-Riot-Token": config.get('lol.api_key') }
     })
     let currentMatch = await response.json();
@@ -56,9 +64,9 @@ const lolCommand = async (command, messageInfo) => {
     // No se encuentra en partida
     if (currentMatch.status && currentMatch.status.status_code === 404) {
       searching = false;
-      return client.say(activeChannel, '@' + messageInfo.user['display-name'] + ', el capi no está en partida.');
+      return client.say(config.get('channel'), '@' + messageInfo.user['display-name'] + ', el capi no está en partida.');
     } else if (currentMatch.status && currentMatch.status.status_code !== 401) {
-      return client.say(activeChannel, '@' + messageInfo.user['display-name'] + ', expiró la key.');
+      return client.say(config.get('channel'), '@' + messageInfo.user['display-name'] + ', expiró la key.');
     } else if (currentMatch.status && currentMatch.status.status_code !== 200) {
       searching = false;
       return;
@@ -66,7 +74,7 @@ const lolCommand = async (command, messageInfo) => {
 
     if (currentMatch.gameQueueConfigId !== 420) {
       searching = false;
-      return client.say(activeChannel, '@' + messageInfo.user['display-name'] + ', el capi no está en una ranked.');
+      return client.say(config.get('channel'), '@' + messageInfo.user['display-name'] + ', el capi no está en una ranked.');
     }
 
     // Matcheo el campeón buscado
@@ -84,7 +92,7 @@ const lolCommand = async (command, messageInfo) => {
     // No encontré el campeón buscado
     if (!championId) {
       searching = false;
-      return client.say(activeChannel, '@' + messageInfo.user['display-name'] + ', no pude encontrar el campeón.');
+      return client.say(config.get('channel'), '@' + messageInfo.user['display-name'] + ', no pude encontrar el campeón.');
     }
 
     // Busco nombre del invocador
@@ -99,18 +107,18 @@ const lolCommand = async (command, messageInfo) => {
     // No encontré nombre del invocador
     if (!summonerName) {
       searching = false;
-      return client.say(activeChannel, '@' + messageInfo.user['display-name'] + ', no se encontró al campeón dentro de la partida.');
+      return client.say(config.get('channel'), '@' + messageInfo.user['display-name'] + ', no se encontró al campeón dentro de la partida.');
     }
 
     // Busco IDs del invocador
-    response = await fetch(config.get('lol.url') + '/lol/summoner/v4/summoners/by-name/' + encodeURIComponent(summonerName), {
+    response = await fetch(urls[config.get('lol.url')] + '/lol/summoner/v4/summoners/by-name/' + encodeURIComponent(summonerName), {
       headers: { "X-Riot-Token": config.get('lol.api_key') }
     });
     summonerData = await response.json();
 
     if (summonerData.status && summonerData.status.status_code !== 200) {
       console.error('No pude buscar al invocador ' + summonerName);
-      client.say(activeChannel, 'Falló al buscar los datos del invocador.');
+      client.say(config.get('channel'), 'Falló al buscar los datos del invocador.');
       searching = false;
       return;
     }
@@ -118,7 +126,7 @@ const lolCommand = async (command, messageInfo) => {
     const summonerId = summonerData.id;
 
     // Busco historial de partidas ranked SoloQ 5v5 con el campeón buscado
-    response = await fetch(config.get('lol.url') + '/lol/match/v4/matchlists/by-account/' + summonerData.accountId + '?champion=' + championId + '&queue=420', {
+    response = await fetch(urls[config.get('lol.url')] + '/lol/match/v4/matchlists/by-account/' + summonerData.accountId + '?champion=' + championId + '&queue=420', {
       headers: { "X-Riot-Token": config.get('lol.api_key') }
     });
     matchList = await response.json();
@@ -126,12 +134,12 @@ const lolCommand = async (command, messageInfo) => {
     
     if (matchList.status) {
       if (matchList.status.status_code === 404) {
-        client.say(activeChannel, summonerName + ' es first time ' + championName + ' LUL');
+        client.say(config.get('channel'), summonerName + ' es first time ' + championName + ' LUL');
         searching = false;
         return;
       } else {
         console.error('No pude encontrar el historial de ' + summonerName);
-        client.say(activeChannel, 'Falló al buscar el historial de partidas.');
+        client.say(config.get('channel'), 'Falló al buscar el historial de partidas.');
         searching = false;
         return;
       }
@@ -145,7 +153,7 @@ const lolCommand = async (command, messageInfo) => {
     for (let i = 0; i < maxMatchCount; i++) {
 
       try {
-        response = await fetch(config.get('lol.url') + '/lol/match/v4/matches/' + matchList.matches[i].gameId, {
+        response = await fetch(urls[config.get('lol.url')] + '/lol/match/v4/matches/' + matchList.matches[i].gameId, {
           headers: { "X-Riot-Token": config.get('lol.api_key') }
         });
         matchData = await response.json();
@@ -185,7 +193,7 @@ const lolCommand = async (command, messageInfo) => {
     }
 
     // Busco datos del rank de invocador
-    response = await fetch(config.get('lol.url') + '/lol/league/v4/entries/by-summoner/' + summonerId, {
+    response = await fetch(urls[config.get('lol.url')] + '/lol/league/v4/entries/by-summoner/' + summonerId, {
       headers: { "X-Riot-Token": config.get('lol.api_key') }
     });
     rankData = await response.json();
@@ -193,7 +201,7 @@ const lolCommand = async (command, messageInfo) => {
     if (rankData.status && rankData.status.status_code !== 200) {
       console.error('No pude encontrar el rank de ' + summonerName);
       searching = false;
-      client.say(activeChannel, 'Falló la API de LoL');
+      client.say(config.get('channel'), 'Falló la API de LoL');
       return;
     }
 
@@ -208,9 +216,9 @@ const lolCommand = async (command, messageInfo) => {
     // Devuelvo mensaje con resultado al chat
     if (rank) {
       const percentage = (rank.wins + rank.losses > 0) ? Math.floor(rank.wins / (rank.wins + rank.losses) * 100).toString() + '% ' : '';
-      client.say(activeChannel, summonerName + ' (' + championName + '): ' + rank.tier + ' ' + rank.rank + ' ' + rank.leaguePoints + 'LP - WR ' + percentage + rank.wins + '/' + rank.losses + ' - Ganó ' + ratio + ' de las últimas ' + totalMatches + ' partidas con ' + championName + '.');
+      client.say(config.get('channel'), summonerName + ' (' + championName + '): ' + rank.tier + ' ' + rank.rank + ' ' + rank.leaguePoints + 'LP - WR ' + percentage + rank.wins + '/' + rank.losses + ' - Ganó ' + ratio + ' de las últimas ' + totalMatches + ' partidas con ' + championName + '.');
     } else {
-      client.say(activeChannel, summonerName + ' (' + championName + '): Ganó ' + ratio + ' de las últimas ' + totalMatches + ' partidas con ' + championName + '.');
+      client.say(config.get('channel'), summonerName + ' (' + championName + '): Ganó ' + ratio + ' de las últimas ' + totalMatches + ' partidas con ' + championName + '.');
     }
 
     setTimeout(() => {
@@ -221,7 +229,7 @@ const lolCommand = async (command, messageInfo) => {
 
   } catch (err) {
     console.error(err);
-    client.action(activeChannel, 'Me rompí todo :c');
+    client.action(config.get('channel'), 'Me rompí todo :c');
     searching = false;
   }
 

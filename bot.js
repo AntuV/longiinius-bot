@@ -1,65 +1,80 @@
-const client = require("./client.js");
-const commandResolver = require("./commandResolver.js");
-const pointsHandler = require("./schedule/points.js");
-const twitch = require("./twitch.js");
-const surveys = require('./schedule/surveys.js');
-const config = require("config");
-const webserver = require("./webserver.js");
-const utils = require("./common/utils.js");
-
-client.connect().then(() => {
-  webserver.start();
-});
+const dayjs = require("dayjs");
+const config = require("./config");
 
 isLive = false;
 
-twitch.isLive().then(live => {
-  isLive = live;
-  surveys.running = live;
-}).catch(() => {});
+config.initialize().then(() => {
 
-/**
- * Cada 5 minutos se fija si está en vivo
- */
-setInterval(async () => {
-  twitch.isLive().then(live => {
-    isLive = live;
-    surveys.running = live;
-  }).catch(() => {});
-}, 5 * 60 * 1000);
+  const commandResolver = require("./commandResolver.js");
+  const pointsHandler = require("./schedule/points.js");
+  const twitch = require("./twitch.js");
+  const surveys = require('./schedule/surveys.js');
+  const webserver = require("./webserver.js");
+  const utils = require("./common/utils.js");
+  const client = require("./client.js");
 
-// Commands
-client.on("chat", (channel, user, message, self) => {
-  // bot message
-  if (self) {
-    return;
-  }
+  client.connect().then(() => {
 
-  // if message has symbol whats mean command - !
-  if (message.indexOf("!") === 0) {
-    channel = {
-      name: channel,
-      users: utils.userList
-    };
-    commandResolver.resolve(channel, user, message);
-  }
+    webserver.start().then(() => {
 
-  if (config.get('options.debug') || isLive) {
-    pointsHandler(user);
-    surveys.checkAnswer(user, message);
-  }
-});
+      twitch.isLive().then(live => {
+        isLive = live;
+        surveys.running = live;
+      }).catch(() => { });
 
-client.on("join", (channel, user, self) => {
-  if (!self) return;
+      /**
+       * Cada 5 minutos se fija si está en vivo
+       */
+      setInterval(async () => {
+        twitch.isLive().then(live => {
+          isLive = live;
+          surveys.running = live;
+        }).catch(() => { });
+      }, 5 * 60 * 1000);
 
-  if (utils.userList.indexOf(user) === -1) {
-    utils.userList.push(user);
-  }
-});
+      // Commands
+      client.on("chat", (channel, user, message, self) => {
+        // bot message
+        if (self) {
+          return;
+        }
 
-client.on("part", (channel, user, self) => {
-  if (!self) return;
+        // if message has symbol whats mean command - !
+        if (message.indexOf("!") === 0) {
+          channel = {
+            name: channel,
+            users: utils.userList
+          };
+          commandResolver.resolve(channel, user, message);
+        }
 
-  utils.userList = utils.userList.filter((u) => u !== user);
+        if (config.get('options.debug') || isLive) {
+          pointsHandler(user);
+          surveys.checkAnswer(user, message);
+        }
+      });
+
+      client.on("join", (channel, user, self) => {
+        if (!self) return;
+
+        if (channel.includes(config.get('bot.username').toLowerCase())) {
+          return;
+        }
+
+        if (utils.userList.indexOf(user) === -1) {
+          utils.userList.push(user);
+        }
+      });
+
+      client.on("part", (channel, user, self) => {
+        if (!self) return;
+
+        if (channel.includes(config.get('bot.username').toLowerCase())) {
+          return;
+        }
+
+        utils.userList = utils.userList.filter((u) => u !== user);
+      });
+    });
+  });
 });
