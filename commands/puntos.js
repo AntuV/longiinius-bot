@@ -36,9 +36,7 @@ const puntosCommand = async (command, messageInfo) => {
   } else if (command.args.length === 1) {
     if (command.args[0] === "rank") {
       const rank = await db.all('SELECT ROW_NUMBER() OVER (ORDER BY quantity DESC) as rank, * from points');
-      console.log(rank);
       for (let i = 0; i < rank.length; i++) {
-        console.log(rank[i].username);
         if (rank[i].username === messageInfo.user.username) {
           client.say(
             config.get('channel'),

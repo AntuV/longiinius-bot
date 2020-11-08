@@ -52,7 +52,6 @@ const utils = {
   hasCooldown: async (username, command) => {
     const now = dayjs();
     const cooldown = await db.get('SELECT * FROM cooldowns WHERE username = ? AND command = ?', [username, command]);
-    console.log(dayjs(cooldown.expiration));
     if (cooldown) {
       return now.isBefore(dayjs(cooldown.expiration));
     } else {
