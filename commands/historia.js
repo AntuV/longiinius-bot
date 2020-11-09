@@ -18,11 +18,14 @@ const historiaCommand = async (command, messageInfo) => {
     return;
   }
 
+  globalCooldown = true;
+
   if (await utils.hasCooldown(messageInfo.user.username, 'historia')) {
     if (!alreadyWarnedUserCD) {
       client.say(config.get('channel'), "@" + messageInfo.user["display-name"] + ", !historia tiene un CD de 8hs por usuario.");
       alreadyWarnedUserCD = true;
     }
+    globalCooldown = false;
     return;
   }
   
@@ -44,6 +47,7 @@ const historiaCommand = async (command, messageInfo) => {
 
     if (await utils.hasCooldown(username.toLowerCase(), 'historia-duo')) {
       client.say(config.get('channel'), `@${messageInfo.user["display-name"]}, ${username} ya tuvo duo historia hace menos de una hora`);
+      globalCooldown = false;
       return;
     }
 
@@ -150,7 +154,6 @@ const historiaCommand = async (command, messageInfo) => {
   }
 
   // Cooldown global de 5 minutos
-  globalCooldown = true;
   setTimeout(() => {
     globalCooldown = false;
   }, 5 * 60 * 1000);
