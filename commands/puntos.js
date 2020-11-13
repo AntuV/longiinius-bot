@@ -48,7 +48,7 @@ const puntosCommand = async (command, messageInfo) => {
     } else if (command.args[0].includes("top")) {
       let limit = 3;
 
-      if (utils.utils.checkPermission(messageInfo)) {
+      if (utils.checkPermission(messageInfo)) {
         const numberMatch = command.args[0].match(/\d+/);
         if (numberMatch) {
           limit = Number.parseInt(numberMatch[0]);
