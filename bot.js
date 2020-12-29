@@ -8,7 +8,7 @@ config.initialize().then(() => {
   const commandResolver = require("./commandResolver.js");
   const pointsHandler = require("./schedule/points.js");
   const twitch = require("./twitch.js");
-  const surveys = require('./schedule/surveys.js');
+  // const surveys = require('./schedule/surveys.js');
   const webserver = require("./webserver.js");
   const utils = require("./common/utils.js");
   const client = require("./client.js");
@@ -19,7 +19,7 @@ config.initialize().then(() => {
 
       twitch.isLive().then(live => {
         isLive = live;
-        surveys.running = live;
+        // surveys.running = live;
       }).catch(() => { });
 
       /**
@@ -28,7 +28,7 @@ config.initialize().then(() => {
       setInterval(async () => {
         twitch.isLive().then(live => {
           isLive = live;
-          surveys.running = live;
+          // surveys.running = live;
         }).catch(() => { });
       }, 5 * 60 * 1000);
 
@@ -50,7 +50,7 @@ config.initialize().then(() => {
 
         if (config.get('options.debug') || isLive) {
           pointsHandler(user);
-          surveys.checkAnswer(user, message);
+          // surveys.checkAnswer(user, message);
         }
       });
 
