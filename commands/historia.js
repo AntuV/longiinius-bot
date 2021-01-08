@@ -28,11 +28,9 @@ const historiaCommand = async (command, messageInfo) => {
     globalCooldown = false;
     return;
   }
-  
+
   alreadyWarnedGlobalCD = false;
   alreadyWarnedUserCD = false;
-
-  await utils.setCooldown(messageInfo.user.username, 'historia', dayjs().add(8, 'hour'));
 
   const storyNumber = Math.floor(Math.random() * 2) + 1;
   const random = Math.floor(Math.random() * 2);
@@ -54,6 +52,8 @@ const historiaCommand = async (command, messageInfo) => {
     await utils.setCooldown(username.toLowerCase(), 'historia-duo', dayjs().add(1, 'hour'));
 
   }
+
+  await utils.setCooldown(messageInfo.user.username, 'historia', dayjs().add(8, 'hour'));
 
   switch (storyNumber) {
     case 1:
